@@ -1,0 +1,1231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Internet Jesus — Send a Prayer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&family=Cinzel:wght@400;600;700&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://www.paypal.com/sdk/js?client-id=AWi9ByOhibHzCaFceNTaS5NhNyORdIjKyGyuCI8Eg-txsNxD0o3SGruty4eEfTUrp702mZoKtL4yfnV5&currency=USD"></script>
+<style>
+  :root {
+    --gold: #C9A84C;
+    --gold-light: #F0D080;
+    --gold-dark: #8B6914;
+    --cream: #FDF8F0;
+    --parchment: #F5EDD8;
+    --heaven: #E8F4FD;
+    --blue-divine: #3A7BD5;
+    --blue-deep: #1A3A6B;
+    --text-dark: #2C1810;
+    --text-mid: #5C3D2E;
+    --text-light: #8B6914;
+    --white: #FFFEF9;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--cream);
+    color: var(--text-dark);
+    font-family: 'Crimson Text', Georgia, serif;
+    font-size: 18px;
+    line-height: 1.7;
+    min-height: 100vh;
+  }
+
+  /* ── SKY BACKGROUND ── */
+  .sky-bg {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: linear-gradient(180deg, #DAEEF9 0%, #F0F8FF 30%, #FDF8F0 70%, #F5EDD8 100%);
+    z-index: -2;
+  }
+  .ray {
+    position: fixed;
+    top: -10vh;
+    left: 50%;
+    transform-origin: top center;
+    width: 3px;
+    background: linear-gradient(180deg, rgba(255,230,100,0.4) 0%, transparent 60%);
+    height: 80vh;
+    z-index: -1;
+    animation: rayPulse 6s ease-in-out infinite;
+  }
+  @keyframes rayPulse { 0%,100%{opacity:0.3} 50%{opacity:0.7} }
+
+  /* ── NAVIGATION ── */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0;
+    z-index: 100;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 32px;
+    background: rgba(253,248,240,0.92);
+    border-bottom: 1px solid rgba(201,168,76,0.3);
+    backdrop-filter: blur(8px);
+  }
+  .nav-brand {
+    font-family: 'Cinzel', serif;
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--gold-dark);
+    letter-spacing: 0.08em;
+    text-decoration: none;
+  }
+  .nav-links { display: flex; gap: 24px; align-items: center; }
+  .nav-links a {
+    font-family: 'Cinzel', serif;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    color: var(--text-mid);
+    text-decoration: none;
+    text-transform: uppercase;
+    transition: color 0.2s;
+  }
+  .nav-links a:hover { color: var(--gold-dark); }
+  .nav-battle {
+    font-family: 'Cinzel', serif;
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    color: var(--blue-deep);
+    text-decoration: none;
+    border: 1px solid var(--blue-deep);
+    padding: 4px 12px;
+    border-radius: 2px;
+    transition: all 0.2s;
+  }
+  .nav-battle:hover { background: var(--blue-deep); color: white; }
+
+  /* ── VIEWS ── */
+  .view { display: none; }
+  .view.active { display: block; }
+
+  /* ── HERO ── */
+  #hero {
+    padding-top: 120px;
+    text-align: center;
+    padding-bottom: 80px;
+  }
+  .halo {
+    display: inline-block;
+    width: 120px; height: 120px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(255,230,80,0.5) 0%, rgba(201,168,76,0.2) 50%, transparent 70%);
+    border: 2px solid var(--gold-light);
+    margin: 0 auto 24px;
+    position: relative;
+    animation: haloGlow 4s ease-in-out infinite;
+  }
+  .halo-inner {
+    position: absolute; inset: 12px;
+    border-radius: 50%;
+    border: 1px solid rgba(201,168,76,0.4);
+  }
+  .halo-cross {
+    position: absolute; top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    color: var(--gold);
+    font-size: 48px;
+    line-height: 1;
+  }
+  @keyframes haloGlow { 0%,100%{box-shadow:0 0 30px rgba(255,220,60,0.3)} 50%{box-shadow:0 0 60px rgba(255,220,60,0.5)} }
+
+  h1.site-title {
+    font-family: 'Cinzel', serif;
+    font-size: clamp(32px, 6vw, 64px);
+    font-weight: 700;
+    color: var(--text-dark);
+    letter-spacing: 0.04em;
+    line-height: 1.1;
+    margin-bottom: 8px;
+  }
+  .site-subtitle {
+    font-family: 'IM Fell English', serif;
+    font-style: italic;
+    font-size: clamp(16px, 2.5vw, 22px);
+    color: var(--text-mid);
+    margin-bottom: 40px;
+  }
+  .divider-gold {
+    display: flex; align-items: center; justify-content: center;
+    gap: 16px; margin: 24px auto;
+    max-width: 400px;
+  }
+  .divider-gold::before, .divider-gold::after {
+    content: ''; flex: 1;
+    height: 1px; background: linear-gradient(to right, transparent, var(--gold));
+  }
+  .divider-gold::after { background: linear-gradient(to left, transparent, var(--gold)); }
+  .divider-star { color: var(--gold); font-size: 14px; }
+
+  .hero-cta {
+    display: inline-block;
+    font-family: 'Cinzel', serif;
+    font-size: 14px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--white);
+    background: linear-gradient(135deg, var(--gold-dark) 0%, var(--gold) 100%);
+    padding: 16px 48px;
+    border: none; cursor: pointer;
+    border-radius: 2px;
+    transition: all 0.3s;
+    text-decoration: none;
+    margin: 8px;
+  }
+  .hero-cta:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(139,105,20,0.4);
+  }
+  .hero-cta-secondary {
+    display: inline-block;
+    font-family: 'Cinzel', serif;
+    font-size: 12px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-mid);
+    border: 1px solid var(--gold);
+    padding: 15px 32px;
+    border-radius: 2px;
+    cursor: pointer;
+    transition: all 0.3s;
+    background: transparent;
+    margin: 8px;
+  }
+  .hero-cta-secondary:hover { background: var(--parchment); }
+
+  /* ── PRICING ── */
+  .pricing-section {
+    max-width: 960px; margin: 0 auto; padding: 60px 24px;
+  }
+  .section-heading {
+    font-family: 'Cinzel', serif;
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--gold-dark);
+    text-align: center;
+    margin-bottom: 8px;
+  }
+  .section-title {
+    font-family: 'IM Fell English', serif;
+    font-size: clamp(24px, 4vw, 40px);
+    text-align: center;
+    color: var(--text-dark);
+    margin-bottom: 48px;
+  }
+  .pricing-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 24px;
+  }
+  .pricing-card {
+    background: var(--white);
+    border: 1px solid rgba(201,168,76,0.3);
+    border-radius: 4px;
+    padding: 32px 28px;
+    text-align: center;
+    position: relative;
+    transition: transform 0.2s, box-shadow 0.2s;
+    cursor: pointer;
+  }
+  .pricing-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 32px rgba(139,105,20,0.15);
+  }
+  .pricing-card.featured {
+    border-color: var(--gold);
+    border-width: 2px;
+  }
+  .featured-badge {
+    position: absolute; top: -12px; left: 50%; transform: translateX(-50%);
+    background: var(--gold);
+    color: var(--white);
+    font-family: 'Cinzel', serif;
+    font-size: 9px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    padding: 3px 16px;
+    border-radius: 2px;
+  }
+  .price-amount {
+    font-family: 'Cinzel', serif;
+    font-size: 48px;
+    font-weight: 700;
+    color: var(--gold-dark);
+    line-height: 1;
+    margin: 16px 0 4px;
+  }
+  .price-label {
+    font-family: 'Cinzel', serif;
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-mid);
+    margin-bottom: 16px;
+  }
+  .price-desc {
+    font-family: 'Crimson Text', serif;
+    font-size: 15px;
+    color: var(--text-mid);
+    line-height: 1.5;
+    margin-bottom: 24px;
+    min-height: 60px;
+  }
+  .price-btn {
+    font-family: 'Cinzel', serif;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--gold-dark);
+    border: 1px solid var(--gold);
+    padding: 10px 24px;
+    background: transparent;
+    cursor: pointer;
+    border-radius: 2px;
+    transition: all 0.2s;
+    width: 100%;
+  }
+  .price-btn:hover, .pricing-card.featured .price-btn {
+    background: var(--gold-dark);
+    color: var(--white);
+    border-color: var(--gold-dark);
+  }
+
+  /* ── SEND FORM ── */
+  #view-send {
+    padding-top: 100px;
+    max-width: 680px;
+    margin: 0 auto;
+    padding-bottom: 80px;
+    padding-left: 24px;
+    padding-right: 24px;
+  }
+  .form-card {
+    background: var(--white);
+    border: 1px solid rgba(201,168,76,0.3);
+    border-radius: 4px;
+    padding: 48px 40px;
+  }
+  .form-title {
+    font-family: 'Cinzel', serif;
+    font-size: 22px;
+    font-weight: 600;
+    color: var(--text-dark);
+    margin-bottom: 4px;
+    text-align: center;
+  }
+  .form-subtitle {
+    font-family: 'IM Fell English', serif;
+    font-style: italic;
+    text-align: center;
+    color: var(--text-mid);
+    font-size: 16px;
+    margin-bottom: 32px;
+  }
+  .tier-pills {
+    display: flex; gap: 8px; margin-bottom: 32px; flex-wrap: wrap;
+  }
+  .tier-pill {
+    font-family: 'Cinzel', serif;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 8px 16px;
+    border: 1px solid rgba(201,168,76,0.4);
+    border-radius: 2px;
+    cursor: pointer;
+    background: transparent;
+    color: var(--text-mid);
+    transition: all 0.2s;
+    flex: 1;
+  }
+  .tier-pill.active {
+    background: var(--gold-dark);
+    border-color: var(--gold-dark);
+    color: var(--white);
+  }
+  .form-group { margin-bottom: 20px; }
+  .form-label {
+    display: block;
+    font-family: 'Cinzel', serif;
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-mid);
+    margin-bottom: 6px;
+  }
+  .form-input, .form-select, .form-textarea {
+    width: 100%;
+    padding: 12px 14px;
+    border: 1px solid rgba(201,168,76,0.35);
+    border-radius: 2px;
+    background: var(--cream);
+    font-family: 'Crimson Text', serif;
+    font-size: 16px;
+    color: var(--text-dark);
+    transition: border-color 0.2s;
+    outline: none;
+  }
+  .form-input:focus, .form-select:focus, .form-textarea:focus {
+    border-color: var(--gold);
+    background: var(--white);
+  }
+  .form-textarea { min-height: 100px; resize: vertical; }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .price-display {
+    text-align: center;
+    margin: 28px 0;
+    padding: 20px;
+    background: var(--parchment);
+    border-radius: 4px;
+    border: 1px solid rgba(201,168,76,0.3);
+  }
+  .price-display-amount {
+    font-family: 'Cinzel', serif;
+    font-size: 36px;
+    font-weight: 700;
+    color: var(--gold-dark);
+  }
+  .price-display-label {
+    font-family: 'Crimson Text', serif;
+    font-style: italic;
+    color: var(--text-mid);
+    font-size: 15px;
+  }
+  #paypal-button-container { margin-top: 24px; }
+  .form-back {
+    display: block;
+    text-align: center;
+    margin-top: 20px;
+    font-family: 'Cinzel', serif;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-mid);
+    cursor: pointer;
+    text-decoration: none;
+  }
+  .form-back:hover { color: var(--gold-dark); }
+
+  /* ── CATEGORY SELECT ── */
+  .category-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+  .category-btn {
+    padding: 10px 8px;
+    border: 1px solid rgba(201,168,76,0.35);
+    border-radius: 2px;
+    background: transparent;
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.2s;
+    font-family: 'Crimson Text', serif;
+    font-size: 14px;
+    color: var(--text-mid);
+  }
+  .category-btn.active {
+    background: var(--heaven);
+    border-color: var(--blue-divine);
+    color: var(--blue-deep);
+  }
+  .category-btn .cat-icon { display: block; font-size: 20px; margin-bottom: 4px; }
+
+  /* ── PRAYER PREVIEW ── */
+  .prayer-preview {
+    background: var(--parchment);
+    border-left: 3px solid var(--gold);
+    padding: 20px 24px;
+    margin: 16px 0;
+    border-radius: 0 4px 4px 0;
+    display: none;
+  }
+  .prayer-preview.visible { display: block; }
+  .prayer-preview-title {
+    font-family: 'Cinzel', serif;
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--gold-dark);
+    margin-bottom: 8px;
+  }
+  .prayer-preview-text {
+    font-family: 'IM Fell English', serif;
+    font-style: italic;
+    font-size: 15px;
+    color: var(--text-dark);
+    line-height: 1.7;
+  }
+
+  /* ── LANDING PAGE (prayer receipt) ── */
+  #view-landing {
+    padding-top: 100px;
+    max-width: 680px;
+    margin: 0 auto;
+    padding-bottom: 80px;
+    padding-left: 24px;
+    padding-right: 24px;
+    text-align: center;
+  }
+  .landing-card {
+    background: var(--white);
+    border: 1px solid rgba(201,168,76,0.3);
+    border-radius: 4px;
+    padding: 56px 48px;
+    position: relative;
+    overflow: hidden;
+  }
+  .landing-card::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0;
+    height: 4px;
+    background: linear-gradient(to right, var(--gold-dark), var(--gold-light), var(--gold-dark));
+  }
+  .landing-from {
+    font-family: 'Cinzel', serif;
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--gold-dark);
+    margin-bottom: 8px;
+  }
+  .landing-recipient {
+    font-family: 'Cinzel', serif;
+    font-size: 28px;
+    font-weight: 600;
+    color: var(--text-dark);
+    margin-bottom: 4px;
+  }
+  .landing-intro {
+    font-family: 'IM Fell English', serif;
+    font-style: italic;
+    font-size: 16px;
+    color: var(--text-mid);
+    margin-bottom: 40px;
+  }
+  .landing-prayer {
+    background: var(--parchment);
+    border: 1px solid rgba(201,168,76,0.3);
+    border-radius: 4px;
+    padding: 32px 36px;
+    margin: 0 auto 32px;
+    text-align: left;
+  }
+  .landing-prayer-title {
+    font-family: 'Cinzel', serif;
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--gold-dark);
+    margin-bottom: 16px;
+    text-align: center;
+  }
+  .landing-prayer-text {
+    font-family: 'IM Fell English', serif;
+    font-style: italic;
+    font-size: 18px;
+    line-height: 1.8;
+    color: var(--text-dark);
+  }
+  .landing-sender {
+    font-family: 'Crimson Text', serif;
+    font-size: 15px;
+    color: var(--text-mid);
+    margin-bottom: 40px;
+  }
+  .landing-sender strong { color: var(--text-dark); font-weight: 600; }
+  .landing-cta-text {
+    font-family: 'Cinzel', serif;
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--text-mid);
+    margin-bottom: 16px;
+  }
+  .landing-actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+  .btn-send-back {
+    font-family: 'Cinzel', serif;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--white);
+    background: var(--gold-dark);
+    border: none; cursor: pointer;
+    padding: 14px 28px;
+    border-radius: 2px;
+    transition: all 0.2s;
+  }
+  .btn-send-back:hover { background: var(--text-dark); }
+  .btn-curse-back {
+    font-family: 'Cinzel', serif;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-mid);
+    border: 1px solid rgba(0,0,0,0.2);
+    padding: 14px 28px;
+    border-radius: 2px;
+    cursor: pointer;
+    background: transparent;
+    transition: all 0.2s;
+    text-decoration: none;
+    display: inline-block;
+  }
+  .landing-view-count {
+    font-family: 'Crimson Text', serif;
+    font-style: italic;
+    font-size: 13px;
+    color: var(--text-light);
+    margin-top: 32px;
+  }
+
+  /* ── CONFIRMATION ── */
+  #view-confirm {
+    padding-top: 120px;
+    text-align: center;
+    max-width: 560px;
+    margin: 0 auto;
+    padding-bottom: 80px;
+    padding-left: 24px;
+    padding-right: 24px;
+  }
+  .confirm-icon { font-size: 64px; margin-bottom: 24px; animation: descend 1s ease-out; }
+  @keyframes descend { from{transform:translateY(-20px);opacity:0} to{transform:translateY(0);opacity:1} }
+  .confirm-title {
+    font-family: 'Cinzel', serif;
+    font-size: 28px;
+    font-weight: 600;
+    color: var(--text-dark);
+    margin-bottom: 16px;
+  }
+  .confirm-body {
+    font-family: 'Crimson Text', serif;
+    font-size: 18px;
+    color: var(--text-mid);
+    margin-bottom: 32px;
+    line-height: 1.7;
+  }
+  .confirm-link {
+    font-family: 'Cinzel', serif;
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--blue-divine);
+    word-break: break-all;
+    background: var(--heaven);
+    padding: 12px 20px;
+    border-radius: 2px;
+    display: block;
+    margin-bottom: 32px;
+  }
+
+  /* ── FOOTER ── */
+  footer {
+    text-align: center;
+    padding: 40px 24px;
+    border-top: 1px solid rgba(201,168,76,0.2);
+    margin-top: 60px;
+  }
+  .footer-logo {
+    font-family: 'Cinzel', serif;
+    font-size: 13px;
+    letter-spacing: 0.1em;
+    color: var(--text-mid);
+    margin-bottom: 8px;
+  }
+  .footer-links { display: flex; gap: 24px; justify-content: center; flex-wrap: wrap; }
+  .footer-links a {
+    font-family: 'Cinzel', serif;
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    color: var(--text-mid);
+    text-decoration: none;
+  }
+  .footer-links a:hover { color: var(--gold-dark); }
+
+  /* ── LOADING ── */
+  .loading { text-align: center; padding: 60px; }
+  .loading-spinner {
+    width: 40px; height: 40px;
+    border: 2px solid rgba(201,168,76,0.2);
+    border-top-color: var(--gold);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin: 0 auto 16px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ── ERROR ── */
+  .error-msg {
+    background: #FEF2F2;
+    border: 1px solid #FCA5A5;
+    border-radius: 2px;
+    padding: 12px 16px;
+    color: #7F1D1D;
+    font-family: 'Crimson Text', serif;
+    font-size: 15px;
+    margin: 12px 0;
+    display: none;
+  }
+  .error-msg.visible { display: block; }
+
+  @media (max-width: 600px) {
+    .form-card { padding: 32px 20px; }
+    .form-row { grid-template-columns: 1fr; }
+    .landing-card { padding: 36px 24px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="sky-bg"></div>
+<!-- Light rays -->
+<div class="ray" style="transform:rotate(-30deg);opacity:0.6;animation-delay:0s"></div>
+<div class="ray" style="transform:rotate(-15deg);opacity:0.4;animation-delay:1s"></div>
+<div class="ray" style="transform:rotate(0deg);opacity:0.7;animation-delay:2s"></div>
+<div class="ray" style="transform:rotate(15deg);opacity:0.4;animation-delay:0.5s"></div>
+<div class="ray" style="transform:rotate(30deg);opacity:0.6;animation-delay:1.5s"></div>
+
+<nav>
+  <a class="nav-brand" href="#" onclick="showView('home')">✝ Internet Jesus</a>
+  <div class="nav-links">
+    <a href="#" onclick="showView('send')">Send a Prayer</a>
+    <a href="https://internetsatan.com" target="_blank">Internet Satan</a>
+    <a href="https://battlefortheinternet soul.com" target="_blank" class="nav-battle">⚔ Battle for the Soul</a>
+  </div>
+</nav>
+
+<!-- ══ HOME VIEW ══ -->
+<div id="view-home" class="view active">
+  <section id="hero">
+    <div class="halo">
+      <div class="halo-inner"></div>
+      <div class="halo-cross">✝</div>
+    </div>
+    <h1 class="site-title">Internet Jesus</h1>
+    <p class="site-subtitle">Delivering Divine Intercession Since the Broadband Age</p>
+    <div class="divider-gold"><span class="divider-star">✦</span></div>
+    <p style="font-family:'Crimson Text',serif;font-size:20px;color:var(--text-mid);max-width:540px;margin:0 auto 40px;line-height:1.7;">
+      Send a sacred prayer to anyone, anywhere. A blessing delivered straight to their inbox — from the Heavens above, or at least from Austin, Texas.
+    </p>
+    <button class="hero-cta" onclick="startSend('topical')">Send a Prayer — $1</button>
+    <button class="hero-cta-secondary" onclick="scrollToPricing()">View All Offerings</button>
+  </section>
+
+  <div class="pricing-section">
+    <p class="section-heading">Choose Your Offering</p>
+    <h2 class="section-title">Prayers for Every Occasion</h2>
+    <div class="pricing-grid">
+      <div class="pricing-card" onclick="startSend('random')">
+        <div class="price-amount">$1</div>
+        <div class="price-label">Random Blessing</div>
+        <div class="price-desc">A prayer drawn from the Divine Archive. You do not choose — the Lord provides.</div>
+        <button class="price-btn">Send a Random Prayer</button>
+      </div>
+      <div class="pricing-card featured" onclick="startSend('topical')">
+        <div class="featured-badge">Most Chosen</div>
+        <div class="price-amount">$5</div>
+        <div class="price-label">Topical Prayer</div>
+        <div class="price-desc">Select a specific prayer for the occasion — love, healing, career, rivals, and more.</div>
+        <button class="price-btn">Choose Your Prayer</button>
+      </div>
+      <div class="pricing-card" onclick="startSend('custom')">
+        <div class="price-amount">$10</div>
+        <div class="price-label">Custom Blessing</div>
+        <div class="price-desc">Write your own words. We dress them in holy raiment and deliver them with full ceremony.</div>
+        <button class="price-btn">Compose a Prayer</button>
+      </div>
+    </div>
+  </div>
+
+  <div style="text-align:center;padding:40px 24px 80px;">
+    <div class="divider-gold" style="max-width:300px;margin:0 auto 32px;"><span class="divider-star">✦</span></div>
+    <p style="font-family:'IM Fell English',serif;font-style:italic;font-size:18px;color:var(--text-mid);max-width:500px;margin:0 auto 16px;">
+      "Ask, and it shall be given to you; seek, and you shall find."
+    </p>
+    <p style="font-family:'Cinzel',serif;font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:var(--gold-dark);">
+      Matthew 7:7 (Also: InternetJesus.com, Verse 1)
+    </p>
+  </div>
+</div>
+
+<!-- ══ SEND VIEW ══ -->
+<div id="view-send" class="view">
+  <div class="form-card">
+    <p class="form-title">✝ Dispatch a Prayer</p>
+    <p class="form-subtitle" id="form-subtitle">Select your offering and fill in the blessed fields below.</p>
+
+    <!-- Tier selector -->
+    <div class="tier-pills">
+      <button class="tier-pill" id="pill-random" onclick="setTier('random')">$1 — Random</button>
+      <button class="tier-pill" id="pill-topical" onclick="setTier('topical')">$5 — Topical</button>
+      <button class="tier-pill" id="pill-custom" onclick="setTier('custom')">$10 — Custom</button>
+    </div>
+
+    <!-- Category selector (topical only) -->
+    <div id="category-section" style="display:none;">
+      <div class="form-label">Choose a Category</div>
+      <div class="category-grid" id="category-grid"></div>
+      <!-- Prayer picker -->
+      <div id="prayer-picker-section" style="display:none;">
+        <label class="form-label">Choose Your Prayer</label>
+        <select class="form-select" id="prayer-select" onchange="previewPrayer()">
+          <option value="">— Select a prayer —</option>
+        </select>
+        <div class="prayer-preview" id="prayer-preview">
+          <div class="prayer-preview-title">Preview</div>
+          <div class="prayer-preview-text" id="prayer-preview-text"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Custom text (custom tier only) -->
+    <div id="custom-section" style="display:none;">
+      <div class="form-group">
+        <label class="form-label">Your Prayer (we will beautify it)</label>
+        <textarea class="form-textarea" id="custom-text" placeholder="Write your prayer here... it will be dressed in holy language and delivered with full ceremony."></textarea>
+      </div>
+    </div>
+
+    <!-- Sender / Recipient -->
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Your Name</label>
+        <input class="form-input" id="sender-name" type="text" placeholder="The Blessed Sender">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Your Email (optional)</label>
+        <input class="form-input" id="sender-email" type="email" placeholder="For your records">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Recipient's Name</label>
+        <input class="form-input" id="recipient-name" type="text" placeholder="Who receives this grace">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Recipient's Email</label>
+        <input class="form-input" id="recipient-email" type="email" placeholder="Where it shall be delivered">
+      </div>
+    </div>
+
+    <div class="price-display">
+      <div class="price-display-amount" id="price-amount-display">$1</div>
+      <div class="price-display-label" id="price-tier-display">Random Blessing — One prayer, chosen by Providence</div>
+    </div>
+
+    <div class="error-msg" id="form-error"></div>
+    <div id="paypal-button-container"></div>
+
+    <a class="form-back" href="#" onclick="showView('home')">← Return to the Sanctuary</a>
+  </div>
+</div>
+
+<!-- ══ LANDING VIEW (prayer receipt) ══ -->
+<div id="view-landing" class="view">
+  <div class="landing-card" id="landing-card">
+    <div class="loading" id="landing-loading">
+      <div class="loading-spinner"></div>
+      <p style="font-family:'Crimson Text',serif;font-style:italic;color:var(--text-mid);">Retrieving your prayer from the celestial archives…</p>
+    </div>
+    <div id="landing-content" style="display:none;">
+      <div class="landing-from">A Sacred Prayer Has Been Sent to You</div>
+      <div class="landing-recipient" id="landing-name"></div>
+      <div class="landing-intro" id="landing-intro"></div>
+      <div class="divider-gold"><span class="divider-star">✦</span></div>
+      <div class="landing-prayer">
+        <div class="landing-prayer-title">Your Prayer</div>
+        <div class="landing-prayer-text" id="landing-prayer-text"></div>
+      </div>
+      <div class="landing-sender" id="landing-sender-text"></div>
+      <div class="landing-cta-text">Return the Favor</div>
+      <div class="landing-actions">
+        <button class="btn-send-back" onclick="startSend('topical')">✝ Send a Prayer Back</button>
+        <a class="btn-curse-back" href="https://internetsatan.com" target="_blank">😈 Send a Curse Instead</a>
+      </div>
+      <div class="landing-view-count" id="landing-view-count"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ CONFIRM VIEW ══ -->
+<div id="view-confirm" class="view">
+  <div class="confirm-icon">🕊️</div>
+  <h2 class="confirm-title">Your Prayer Has Been Dispatched</h2>
+  <p class="confirm-body" id="confirm-body">
+    The prayer has been delivered unto <strong id="confirm-recipient"></strong>. May it find them in good health and open spirit.
+  </p>
+  <p style="font-family:'Cinzel',serif;font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-mid);margin-bottom:8px;">Their Prayer Awaits At</p>
+  <div class="confirm-link" id="confirm-link"></div>
+  <button class="hero-cta" onclick="startSend('topical')">Send Another Prayer</button>
+</div>
+
+<footer>
+  <div class="footer-logo">✝ INTERNET JESUS</div>
+  <div class="divider-gold" style="max-width:200px;margin:12px auto;"><span class="divider-star">✦</span></div>
+  <div class="footer-links">
+    <a href="https://internetsatan.com" target="_blank">Internet Satan</a>
+    <a href="https://battlefortheinternet soul.com" target="_blank">Battle for the Internet Soul</a>
+    <a href="#" onclick="showView('home')">Home</a>
+    <a href="admin.html">Admin</a>
+  </div>
+  <p style="font-family:'Crimson Text',serif;font-size:13px;color:var(--text-light);margin-top:16px;">
+    © 2025 Internet Jesus LLC · For entertainment purposes · Prayers not guaranteed to reach God
+  </p>
+</footer>
+
+<script>
+// ══ CONFIG ══
+const SUPABASE_URL = 'YOUR_SUPABASE_URL';
+const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
+const PAYPAL_CLIENT_ID = 'AWi9ByOhibHzCaFceNTaS5NhNyORdIjKyGyuCI8Eg-txsNxD0o3SGruty4eEfTUrp702mZoKtL4yfnV5';
+const SITE_URL = 'https://internetjesus.com';
+const SITE_TYPE = 'prayer';
+
+const { createClient } = supabase;
+const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+// ══ STATE ══
+let currentTier = 'topical';
+let selectedCategory = null;
+let selectedPrayerId = null;
+let selectedPrayerText = null;
+let prayersByCategory = {};
+let allCategories = [];
+let paypalButtonsRendered = false;
+
+// ══ TIER CONFIG ══
+const TIERS = {
+  random:  { price: 1.00, label: 'Random Blessing', desc: 'One prayer, chosen by Providence' },
+  topical: { price: 5.00, label: 'Topical Prayer',  desc: 'You choose the category and prayer' },
+  custom:  { price: 10.00, label: 'Custom Blessing', desc: 'Your own words, dressed in holy raiment' }
+};
+
+// ══ VIEWS ══
+function showView(name) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.getElementById('view-' + name).classList.add('active');
+  window.scrollTo(0, 0);
+}
+
+function scrollToPricing() {
+  document.querySelector('.pricing-section').scrollIntoView({ behavior: 'smooth' });
+}
+
+// ══ SEND FLOW ══
+function startSend(tier) {
+  showView('send');
+  setTier(tier);
+}
+
+function setTier(tier) {
+  currentTier = tier;
+  document.querySelectorAll('.tier-pill').forEach(p => p.classList.remove('active'));
+  document.getElementById('pill-' + tier).classList.add('active');
+
+  document.getElementById('category-section').style.display = (tier === 'topical') ? 'block' : 'none';
+  document.getElementById('custom-section').style.display = (tier === 'custom') ? 'block' : 'none';
+
+  const t = TIERS[tier];
+  document.getElementById('price-amount-display').textContent = '$' + t.price.toFixed(0);
+  document.getElementById('price-tier-display').textContent = t.label + ' — ' + t.desc;
+
+  const subtitles = {
+    random:  'A prayer shall be chosen for you from the Sacred Archive.',
+    topical: 'Choose a category, then select the perfect prayer.',
+    custom:  'Write your own prayer and we will deliver it with full ceremony.'
+  };
+  document.getElementById('form-subtitle').textContent = subtitles[tier];
+
+  if (tier === 'topical' && allCategories.length === 0) loadCategories();
+  renderPayPalButton();
+}
+
+// ══ SUPABASE: LOAD CATEGORIES ══
+async function loadCategories() {
+  const { data, error } = await sb
+    .from('content')
+    .select('category')
+    .eq('type', 'prayer')
+    .eq('active', true);
+
+  if (error) { console.error(error); return; }
+
+  const cats = [...new Set(data.map(r => r.category))].filter(Boolean).sort();
+  allCategories = cats;
+  renderCategories();
+}
+
+const CATEGORY_ICONS = {
+  'Love & Relationships': '❤️',
+  'Health & Healing':     '🌿',
+  'Career & Success':     '✨',
+  'Enemy & Rivals':       '⚔️',
+  'Protection':           '🛡️',
+  'Grief & Loss':         '🕊️',
+  'Safe Travels':         '🌟',
+  'Sleep & Peace':        '🌙',
+  'Sports Victory':       '🏆',
+  'Forgiveness':          '🙏',
+  'General Blessing':     '☀️',
+  'Biblical':             '📖'
+};
+
+function renderCategories() {
+  const grid = document.getElementById('category-grid');
+  grid.innerHTML = '';
+  allCategories.forEach(cat => {
+    const btn = document.createElement('button');
+    btn.className = 'category-btn';
+    btn.innerHTML = '<span class="cat-icon">' + (CATEGORY_ICONS[cat] || '🙏') + '</span>' + cat;
+    btn.onclick = () => selectCategory(cat, btn);
+    grid.appendChild(btn);
+  });
+}
+
+async function selectCategory(cat, btn) {
+  document.querySelectorAll('.category-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  selectedCategory = cat;
+  selectedPrayerId = null;
+  selectedPrayerText = null;
+
+  if (!prayersByCategory[cat]) {
+    const { data, error } = await sb
+      .from('content')
+      .select('id, title, text')
+      .eq('type', 'prayer')
+      .eq('category', cat)
+      .eq('active', true)
+      .order('title');
+    if (!error) prayersByCategory[cat] = data;
+  }
+
+  const prayers = prayersByCategory[cat] || [];
+  const sel = document.getElementById('prayer-select');
+  sel.innerHTML = '<option value="">— Select a prayer —</option>';
+  prayers.forEach(p => {
+    const opt = document.createElement('option');
+    opt.value = p.id;
+    opt.textContent = p.title;
+    opt.dataset.text = p.text;
+    sel.appendChild(opt);
+  });
+
+  document.getElementById('prayer-picker-section').style.display = prayers.length ? 'block' : 'none';
+  document.getElementById('prayer-preview').classList.remove('visible');
+}
+
+function previewPrayer() {
+  const sel = document.getElementById('prayer-select');
+  const opt = sel.options[sel.selectedIndex];
+  if (!opt || !opt.value) {
+    selectedPrayerId = null;
+    selectedPrayerText = null;
+    document.getElementById('prayer-preview').classList.remove('visible');
+    return;
+  }
+  selectedPrayerId = opt.value;
+  selectedPrayerText = opt.dataset.text;
+  document.getElementById('prayer-preview-text').textContent = selectedPrayerText;
+  document.getElementById('prayer-preview').classList.add('visible');
+}
+
+// ══ VALIDATION ══
+function validateForm() {
+  const err = document.getElementById('form-error');
+  const recipientName  = document.getElementById('recipient-name').value.trim();
+  const recipientEmail = document.getElementById('recipient-email').value.trim();
+  const senderName     = document.getElementById('sender-name').value.trim();
+
+  if (!senderName)     { showError('Please enter your name.'); return false; }
+  if (!recipientName)  { showError('Please enter the recipient\'s name.'); return false; }
+  if (!recipientEmail || !recipientEmail.includes('@')) { showError('Please enter a valid recipient email.'); return false; }
+  if (currentTier === 'topical' && !selectedPrayerId) { showError('Please choose a category and select a prayer.'); return false; }
+  if (currentTier === 'custom' && !document.getElementById('custom-text').value.trim()) { showError('Please write your custom prayer.'); return false; }
+
+  err.classList.remove('visible');
+  return true;
+}
+
+function showError(msg) {
+  const err = document.getElementById('form-error');
+  err.textContent = msg;
+  err.classList.add('visible');
+}
+
+// ══ PAYPAL ══
+function renderPayPalButton() {
+  const container = document.getElementById('paypal-button-container');
+  container.innerHTML = '';
+
+  paypal.Buttons({
+    style: { color: 'gold', shape: 'rect', label: 'pay', height: 48 },
+    createOrder: (data, actions) => {
+      if (!validateForm()) return Promise.reject(new Error('validation'));
+      return actions.order.create({
+        purchase_units: [{
+          amount: { value: TIERS[currentTier].price.toFixed(2) },
+          description: 'InternetJesus — ' + TIERS[currentTier].label
+        }]
+      });
+    },
+    onApprove: async (data, actions) => {
+      const order = await actions.order.capture();
+      await processOrder(order);
+    },
+    onError: (err) => {
+      showError('Payment error. Please try again.');
+      console.error(err);
+    },
+    onCancel: () => { /* silently ignore */ }
+  }).render('#paypal-button-container');
+}
+
+// ══ PROCESS ORDER ══
+async function processOrder(order) {
+  const senderName     = document.getElementById('sender-name').value.trim();
+  const senderEmail    = document.getElementById('sender-email').value.trim();
+  const recipientName  = document.getElementById('recipient-name').value.trim();
+  const recipientEmail = document.getElementById('recipient-email').value.trim();
+  const customText     = document.getElementById('custom-text')?.value.trim();
+
+  // Generate slug
+  const slug = generateSlug();
+
+  // For random tier: pick a random prayer from DB
+  let contentId = selectedPrayerId;
+  let prayerText = selectedPrayerText;
+
+  if (currentTier === 'random') {
+    const { data } = await sb
+      .from('content')
+      .select('id, text')
+      .eq('type', 'prayer')
+      .eq('active', true)
+      .limit(100);
+    if (data && data.length) {
+      const pick = data[Math.floor(Math.random() * data.length)];
+      contentId = pick.id;
+      prayerText = pick.text;
+    }
+  } else if (currentTier === 'custom') {
+    prayerText = customText;
+    contentId = null;
+  }
+
+  // Insert transaction
+  const { data: tx, error } = await sb.from('transactions').insert({
+    type: 'prayer',
+    tier: currentTier,
+    price_paid: TIERS[currentTier].price,
+    sender_name: senderName,
+    sender_email: senderEmail || null,
+    recipient_name: recipientName,
+    recipient_email: recipientEmail,
+    content_id: contentId || null,
+    custom_text: currentTier === 'custom' ? customText : null,
+    paypal_order_id: order.id,
+    slug: slug,
+    delivered: false,
+    view_count: 0
+  }).select().single();
+
+  if (error) {
+    showError('Something went wrong saving your prayer. Please contact us.');
+    console.error(error);
+    return;
+  }
+
+  // Trigger email via PHP
+  await sendEmail({
+    slug, recipientName, recipientEmail, senderName,
+    prayerText: prayerText || customText,
+    tier: currentTier,
+    landingUrl: SITE_URL + '/?prayer=' + slug
+  });
+
+  // Show confirmation
+  document.getElementById('confirm-recipient').textContent = recipientName;
+  document.getElementById('confirm-link').textContent = SITE_URL + '/?prayer=' + slug;
+  showView('confirm');
+}
+
+async function sendEmail(payload) {
+  try {
+    await fetch('send-prayer.php', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+  } catch (e) { console.error('Email send error', e); }
+}
+
+function generateSlug() {
+  const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
+  return Array.from({ length: 10 }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
+}
+
+// ══ LANDING PAGE LOGIC ══
+async function loadLandingPage(slug) {
+  showView('landing');
+  const { data, error } = await sb
+    .from('transactions')
+    .select('*, content:content_id(title, text)')
+    .eq('slug', slug)
+    .eq('type', 'prayer')
+    .single();
+
+  document.getElementById('landing-loading').style.display = 'none';
+  document.getElementById('landing-content').style.display = 'block';
+
+  if (error || !data) {
+    document.getElementById('landing-content').innerHTML =
+      '<p style="font-family:\'Crimson Text\',serif;font-style:italic;color:var(--text-mid);text-align:center;padding:40px;">This prayer could not be found. Perhaps it has already ascended.</p>';
+    return;
+  }
+
+  const prayerText = data.custom_text || (data.content && data.content.text) || '';
+
+  document.getElementById('landing-name').textContent = data.recipient_name;
+  document.getElementById('landing-intro').textContent = 'A prayer has been sent to you by someone who cares.';
+  document.getElementById('landing-prayer-text').textContent = prayerText;
+  document.getElementById('landing-sender-text').innerHTML =
+    'Sent with divine intention by <strong>' + escHtml(data.sender_name) + '</strong>';
+
+  // Increment view count
+  const newCount = (data.view_count || 0) + 1;
+  await sb.from('transactions').update({ view_count: newCount }).eq('slug', slug);
+  if (newCount > 1) {
+    document.getElementById('landing-view-count').textContent =
+      'This prayer has been viewed ' + newCount + ' times.';
+  }
+}
+
+function escHtml(str) {
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ══ ROUTER ══
+function router() {
+  const params = new URLSearchParams(window.location.search);
+  const prayerSlug = params.get('prayer');
+  if (prayerSlug) {
+    loadLandingPage(prayerSlug);
+  } else {
+    showView('home');
+    renderPayPalButton();
+  }
+}
+
+// ══ INIT ══
+window.addEventListener('DOMContentLoaded', () => {
+  router();
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Battle for the Internet Soul — The Cosmic Tally</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=Cinzel+Decorative:wght@400;700&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root {
+    --heaven: #DAEEF9;
+    --heaven-mid: #8BC8E8;
+    --gold: #C9A84C;
+    --gold-light: #F0D080;
+    --hell: #4A0000;
+    --hell-mid: #8B0000;
+    --ember: #FF4500;
+    --divide: #2A1A08;
+    --bg: #0A0A0A;
+    --text: #E8E0D0;
+    --text-dim: #8A7A6A;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Crimson Text', Georgia, serif;
+    font-size: 18px;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── SPLIT BG ── */
+  .cosmic-bg {
+    position: fixed; inset: 0; z-index: -1;
+    display: flex;
+  }
+  .heaven-side {
+    flex: 1;
+    background: linear-gradient(180deg, #0A1A2A 0%, #0A0A0A 100%);
+    position: relative;
+    overflow: hidden;
+  }
+  .hell-side {
+    flex: 1;
+    background: linear-gradient(180deg, #1A0000 0%, #0A0A0A 100%);
+    position: relative;
+    overflow: hidden;
+  }
+  .heaven-glow {
+    position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+    background: radial-gradient(ellipse at 50% 0%, rgba(100,180,255,0.12) 0%, transparent 60%);
+  }
+  .hell-glow {
+    position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+    background: radial-gradient(ellipse at 50% 0%, rgba(180,0,0,0.15) 0%, transparent 60%);
+  }
+  .divide-line {
+    position: fixed; top: 0; bottom: 0; left: 50%;
+    width: 1px;
+    background: linear-gradient(180deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.15) 50%, rgba(255,255,255,0.05) 100%);
+    z-index: 1;
+  }
+
+  /* ── HEADER ── */
+  header {
+    text-align: center;
+    padding: 60px 24px 40px;
+    position: relative;
+    z-index: 10;
+  }
+  .site-eyebrow {
+    font-family: 'Cinzel', serif;
+    font-size: 10px;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin-bottom: 16px;
+  }
+  h1 {
+    font-family: 'Cinzel', serif;
+    font-size: clamp(22px, 5vw, 52px);
+    font-weight: 900;
+    letter-spacing: 0.04em;
+    line-height: 1.1;
+    margin-bottom: 12px;
+  }
+  h1 .heaven-word { color: #7BC8F0; }
+  h1 .hell-word { color: #CC3300; }
+  h1 .vs { color: var(--text-dim); font-size: 0.6em; font-weight: 400; vertical-align: middle; }
+  .site-sub {
+    font-family: 'Crimson Text', serif;
+    font-style: italic;
+    font-size: clamp(14px, 2vw, 18px);
+    color: var(--text-dim);
+  }
+
+  /* ── MAIN SCOREBOARD ── */
+  .scoreboard {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 20px 24px 60px;
+    position: relative;
+    z-index: 10;
+  }
+
+  /* ── BIG COUNTERS ── */
+  .big-battle {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: 0;
+    align-items: center;
+    margin-bottom: 48px;
+  }
+  .side-block {
+    text-align: center;
+    padding: 48px 32px;
+    border-radius: 4px;
+    position: relative;
+  }
+  .heaven-block {
+    background: rgba(10,30,50,0.6);
+    border: 1px solid rgba(100,180,255,0.2);
+  }
+  .hell-block {
+    background: rgba(50,0,0,0.6);
+    border: 1px solid rgba(139,0,0,0.3);
+  }
+  .side-icon { font-size: 48px; margin-bottom: 12px; display: block; }
+  .side-label {
+    font-family: 'Cinzel', serif;
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+  .heaven-label { color: #7BC8F0; }
+  .hell-label { color: #CC3300; }
+  .big-count {
+    font-family: 'Cinzel', serif;
+    font-weight: 900;
+    font-size: clamp(56px, 10vw, 96px);
+    line-height: 1;
+    margin-bottom: 8px;
+    transition: all 0.5s ease;
+  }
+  .heaven-count { color: #DAEEF9; text-shadow: 0 0 30px rgba(100,180,255,0.3); }
+  .hell-count   { color: #FF9977; text-shadow: 0 0 30px rgba(200,50,0,0.4); }
+  .side-unit {
+    font-family: 'Crimson Text', serif;
+    font-style: italic;
+    font-size: 14px;
+    color: var(--text-dim);
+  }
+  .vs-block {
+    text-align: center;
+    padding: 0 16px;
+  }
+  .vs-text {
+    font-family: 'Cinzel', serif;
+    font-size: clamp(18px, 3vw, 32px);
+    font-weight: 700;
+    color: var(--text-dim);
+    display: block;
+    margin-bottom: 8px;
+  }
+  .vs-sword { font-size: 28px; display: block; }
+
+  /* ── DOMINANCE BAR ── */
+  .dominance-section { margin-bottom: 48px; }
+  .dominance-label {
+    font-family: 'Cinzel', serif;
+    font-size: 9px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    text-align: center;
+    margin-bottom: 12px;
+  }
+  .dominance-bar-outer {
+    height: 20px;
+    background: rgba(255,255,255,0.05);
+    border-radius: 2px;
+    overflow: hidden;
+    position: relative;
+    border: 1px solid rgba(255,255,255,0.08);
+  }
+  .dominance-bar-heaven {
+    position: absolute; left: 0; top: 0; bottom: 0;
+    background: linear-gradient(to right, #1A3A5A, #4A90C0);
+    transition: width 1s ease;
+    display: flex; align-items: center; padding-left: 12px;
+  }
+  .dominance-bar-hell {
+    position: absolute; right: 0; top: 0; bottom: 0;
+    background: linear-gradient(to left, #4A0000, #AA2200);
+    transition: width 1s ease;
+    display: flex; align-items: center; justify-content: flex-end; padding-right: 12px;
+  }
+  .bar-pct {
+    font-family: 'Cinzel', serif;
+    font-size: 10px;
+    font-weight: 600;
+    color: rgba(255,255,255,0.7);
+  }
+  .dominance-verdict {
+    text-align: center;
+    font-family: 'Crimson Text', serif;
+    font-style: italic;
+    font-size: 16px;
+    color: var(--text-dim);
+    margin-top: 12px;
+  }
+
+  /* ── TIME TABS ── */
+  .time-tabs {
+    display: flex;
+    justify-content: center;
+    gap: 4px;
+    margin-bottom: 32px;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    padding-bottom: 0;
+  }
+  .time-tab {
+    font-family: 'Cinzel', serif;
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    padding: 10px 20px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+    transition: all 0.2s;
+  }
+  .time-tab:hover { color: var(--text); }
+  .time-tab.active {
+    color: var(--text);
+    border-bottom-color: var(--gold);
+  }
+
+  /* ── PERIOD STATS ── */
+  .period-stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-bottom: 48px;
+  }
+  .stat-card {
+    padding: 24px;
+    border-radius: 4px;
+    text-align: center;
+  }
+  .heaven-stat { background: rgba(10,30,50,0.5); border: 1px solid rgba(100,180,255,0.15); }
+  .hell-stat   { background: rgba(50,0,0,0.5);   border: 1px solid rgba(139,0,0,0.2); }
+  .stat-period {
+    font-family: 'Cinzel', serif;
+    font-size: 9px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin-bottom: 8px;
+  }
+  .stat-number {
+    font-family: 'Cinzel', serif;
+    font-size: 40px;
+    font-weight: 700;
+    line-height: 1;
+    margin-bottom: 4px;
+    transition: all 0.5s;
+  }
+  .heaven-stat .stat-number { color: #DAEEF9; }
+  .hell-stat   .stat-number { color: #FF9977; }
+  .stat-label {
+    font-family: 'Crimson Text', serif;
+    font-style: italic;
+    font-size: 13px;
+    color: var(--text-dim);
+  }
+
+  /* ── RECENT ACTIVITY ── */
+  .recent-section {
+    margin-bottom: 48px;
+  }
+  .section-title {
+    font-family: 'Cinzel', serif;
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    text-align: center;
+    margin-bottom: 24px;
+  }
+  .activity-feed {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    max-height: 320px;
+    overflow-y: auto;
+  }
+  .activity-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    border-radius: 2px;
+    font-family: 'Crimson Text', serif;
+    font-size: 15px;
+    animation: fadeIn 0.4s ease;
+  }
+  @keyframes fadeIn { from{opacity:0;transform:translateY(-4px)} to{opacity:1;transform:translateY(0)} }
+  .activity-prayer {
+    background: rgba(10,30,50,0.5);
+    border-left: 2px solid #4A90C0;
+    color: #DAEEF9;
+  }
+  .activity-curse {
+    background: rgba(50,0,0,0.5);
+    border-left: 2px solid #AA2200;
+    color: #FF9977;
+  }
+  .activity-icon { font-size: 16px; flex-shrink: 0; }
+  .activity-text { flex: 1; }
+  .activity-name { font-weight: 600; }
+  .activity-time {
+    font-size: 12px;
+    color: var(--text-dim);
+    white-space: nowrap;
+  }
+
+  /* ── CALL TO ACTION ── */
+  .cta-section {
+    text-align: center;
+    padding: 48px 24px;
+    border-top: 1px solid rgba(255,255,255,0.06);
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    margin-bottom: 48px;
+  }
+  .cta-title {
+    font-family: 'Cinzel', serif;
+    font-size: clamp(18px, 3vw, 28px);
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 8px;
+  }
+  .cta-sub {
+    font-family: 'Crimson Text', serif;
+    font-style: italic;
+    color: var(--text-dim);
+    font-size: 16px;
+    margin-bottom: 32px;
+  }
+  .cta-btns { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
+  .btn-heaven {
+    font-family: 'Cinzel', serif;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #DAEEF9;
+    background: rgba(10,50,90,0.8);
+    border: 1px solid rgba(100,180,255,0.4);
+    padding: 16px 32px;
+    border-radius: 2px;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.2s;
+  }
+  .btn-heaven:hover { background: rgba(30,80,130,0.8); }
+  .btn-hell {
+    font-family: 'Cinzel', serif;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #FF9977;
+    background: rgba(60,0,0,0.8);
+    border: 1px solid rgba(139,0,0,0.5);
+    padding: 16px 32px;
+    border-radius: 2px;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.2s;
+  }
+  .btn-hell:hover { background: rgba(100,0,0,0.8); }
+
+  /* ── FOOTER ── */
+  footer {
+    text-align: center;
+    padding: 32px 24px;
+    position: relative;
+    z-index: 10;
+  }
+  .footer-logos {
+    font-family: 'Cinzel', serif;
+    font-size: 12px;
+    letter-spacing: 0.1em;
+    color: var(--text-dim);
+    margin-bottom: 12px;
+  }
+  .footer-logos a { color: var(--text-dim); text-decoration: none; margin: 0 12px; }
+  .footer-logos a:hover { color: var(--text); }
+
+  /* ── LIVE DOT ── */
+  .live-indicator {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-family: 'Cinzel', serif;
+    font-size: 9px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin-top: 8px;
+  }
+  .live-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: #4CAF50;
+    animation: livePulse 2s ease-in-out infinite;
+  }
+  @keyframes livePulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+  .loading-msg {
+    text-align: center;
+    padding: 40px;
+    font-family: 'Crimson Text', serif;
+    font-style: italic;
+    color: var(--text-dim);
+  }
+
+  @media (max-width: 600px) {
+    .big-battle { grid-template-columns: 1fr; gap: 16px; }
+    .vs-block { transform: rotate(90deg); }
+    .period-stats { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="cosmic-bg">
+  <div class="heaven-side"><div class="heaven-glow"></div></div>
+  <div class="hell-side"><div class="hell-glow"></div></div>
+</div>
+<div class="divide-line"></div>
+
+<header>
+  <p class="site-eyebrow">The Eternal Struggle</p>
+  <h1>
+    <span class="heaven-word">✝ Prayers</span>
+    <span class="vs"> vs. </span>
+    <span class="hell-word">Curses 🔥</span>
+  </h1>
+  <p class="site-sub">The cosmic battle for the internet soul — tracked in real time.</p>
+  <div class="live-indicator">
+    <div class="live-dot"></div>
+    Live · Updates every 60 seconds
+  </div>
+</header>
+
+<div class="scoreboard">
+
+  <!-- Big counters -->
+  <div class="big-battle">
+    <div class="side-block heaven-block">
+      <span class="side-icon">✝</span>
+      <div class="side-label heaven-label">Total Prayers</div>
+      <div class="big-count heaven-count" id="total-prayers">—</div>
+      <div class="side-unit">souls blessed</div>
+    </div>
+    <div class="vs-block">
+      <span class="vs-text">VS</span>
+      <span class="vs-sword">⚔️</span>
+    </div>
+    <div class="side-block hell-block">
+      <span class="side-icon">🔥</span>
+      <div class="side-label hell-label">Total Curses</div>
+      <div class="big-count hell-count" id="total-curses">—</div>
+      <div class="side-unit">souls condemned</div>
+    </div>
+  </div>
+
+  <!-- Dominance bar -->
+  <div class="dominance-section">
+    <div class="dominance-label">Who Controls the Internet Soul?</div>
+    <div class="dominance-bar-outer">
+      <div class="dominance-bar-heaven" id="bar-heaven" style="width:50%">
+        <span class="bar-pct" id="bar-pct-heaven">50%</span>
+      </div>
+      <div class="dominance-bar-hell" id="bar-hell" style="width:50%">
+        <span class="bar-pct" id="bar-pct-hell">50%</span>
+      </div>
+    </div>
+    <div class="dominance-verdict" id="dominance-verdict">The cosmic scales are balanced. Send something to tip them.</div>
+  </div>
+
+  <!-- Time tabs -->
+  <div class="time-tabs">
+    <button class="time-tab active" onclick="switchPeriod('today', this)">Today</button>
+    <button class="time-tab" onclick="switchPeriod('week', this)">This Week</button>
+    <button class="time-tab" onclick="switchPeriod('month', this)">This Month</button>
+    <button class="time-tab" onclick="switchPeriod('year', this)">This Year</button>
+    <button class="time-tab" onclick="switchPeriod('alltime', this)">All Time</button>
+  </div>
+
+  <!-- Period stats -->
+  <div class="period-stats">
+    <div class="stat-card heaven-stat">
+      <div class="stat-period" id="period-label-prayers">Today</div>
+      <div class="stat-number" id="period-prayers">—</div>
+      <div class="stat-label">Prayers sent ✝</div>
+    </div>
+    <div class="stat-card hell-stat">
+      <div class="stat-period" id="period-label-curses">Today</div>
+      <div class="stat-number" id="period-curses">—</div>
+      <div class="stat-label">Curses dispatched 🔥</div>
+    </div>
+  </div>
+
+  <!-- Recent activity -->
+  <div class="recent-section">
+    <div class="section-title">Recent Dispatches</div>
+    <div class="activity-feed" id="activity-feed">
+      <div class="loading-msg">Loading the celestial ledger…</div>
+    </div>
+  </div>
+
+  <!-- CTA -->
+  <div class="cta-section">
+    <div class="cta-title">Cast Your Vote for the Internet Soul</div>
+    <div class="cta-sub">Every prayer and every curse shifts the cosmic balance.</div>
+    <div class="cta-btns">
+      <a href="https://internetjesus.com" class="btn-heaven" target="_blank">✝ Send a Prayer — $1</a>
+      <a href="https://internetsatan.com" class="btn-hell" target="_blank">🔥 Send a Curse — $1</a>
+    </div>
+  </div>
+
+</div>
+
+<footer>
+  <div class="footer-logos">
+    <a href="https://internetjesus.com" target="_blank">✝ InternetJesus.com</a>
+    ·
+    <a href="https://internetsatan.com" target="_blank">🔥 InternetSatan.com</a>
+  </div>
+  <p style="font-family:'Crimson Text',serif;font-size:12px;color:var(--text-dim);">
+    © 2025 Battle for the Internet Soul · For entertainment purposes · Results may not reflect actual spiritual outcomes
+  </p>
+</footer>
+
+<script>
+const SUPABASE_URL = 'YOUR_SUPABASE_URL';
+const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
+const { createClient } = supabase;
+const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+let currentPeriod = 'today';
+
+function getPeriodStart(period) {
+  const now = new Date();
+  switch(period) {
+    case 'today':
+      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      return today.toISOString();
+    case 'week':
+      const week = new Date(now);
+      week.setDate(week.getDate() - week.getDay());
+      week.setHours(0,0,0,0);
+      return week.toISOString();
+    case 'month':
+      return new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+    case 'year':
+      return new Date(now.getFullYear(), 0, 1).toISOString();
+    case 'alltime':
+      return null;
+  }
+}
+
+const PERIOD_LABELS = {
+  today: 'Today', week: 'This Week', month: 'This Month', year: 'This Year', alltime: 'All Time'
+};
+
+async function loadStats() {
+  // All-time totals
+  const { data: allData, error: allErr } = await sb
+    .from('transactions')
+    .select('type');
+
+  if (!allErr && allData) {
+    const totalPrayers = allData.filter(r => r.type === 'prayer').length;
+    const totalCurses  = allData.filter(r => r.type === 'curse').length;
+    const total = totalPrayers + totalCurses || 1;
+
+    animateCount('total-prayers', totalPrayers);
+    animateCount('total-curses',  totalCurses);
+
+    const prayerPct = Math.round((totalPrayers / total) * 100);
+    const cursePct  = 100 - prayerPct;
+
+    document.getElementById('bar-heaven').style.width = prayerPct + '%';
+    document.getElementById('bar-hell').style.width   = cursePct + '%';
+    document.getElementById('bar-pct-heaven').textContent = prayerPct + '%';
+    document.getElementById('bar-pct-hell').textContent   = cursePct  + '%';
+
+    let verdict;
+    if (prayerPct === cursePct) verdict = 'The cosmic scales are balanced. Send something to tip them.';
+    else if (prayerPct > cursePct + 20) verdict = 'The heavens are prevailing. Light floods the internet soul.';
+    else if (prayerPct > cursePct + 5)  verdict = 'The blessed hold a modest lead. But darkness is patient.';
+    else if (cursePct  > prayerPct + 20) verdict = 'Darkness reigns. The internet soul teeters toward the abyss.';
+    else if (cursePct  > prayerPct + 5)  verdict = 'The cursed hold the edge. Heaven must rally.';
+    else verdict = 'A razor-thin battle. The internet soul hangs in the balance.';
+    document.getElementById('dominance-verdict').textContent = verdict;
+  }
+
+  await loadPeriodStats(currentPeriod);
+  await loadRecentActivity();
+}
+
+async function loadPeriodStats(period) {
+  const start = getPeriodStart(period);
+  const label = PERIOD_LABELS[period];
+  document.getElementById('period-label-prayers').textContent = label;
+  document.getElementById('period-label-curses').textContent  = label;
+
+  let query = sb.from('transactions').select('type');
+  if (start) query = query.gte('created_at', start);
+  const { data, error } = await query;
+
+  if (!error && data) {
+    const prayers = data.filter(r => r.type === 'prayer').length;
+    const curses  = data.filter(r => r.type === 'curse').length;
+    animateCount('period-prayers', prayers);
+    animateCount('period-curses',  curses);
+  }
+}
+
+async function loadRecentActivity() {
+  const { data, error } = await sb
+    .from('transactions')
+    .select('type, sender_name, recipient_name, created_at')
+    .order('created_at', { ascending: false })
+    .limit(20);
+
+  const feed = document.getElementById('activity-feed');
+  if (error || !data || !data.length) {
+    feed.innerHTML = '<div class="loading-msg">No dispatches yet. Be the first to tip the scales.</div>';
+    return;
+  }
+
+  feed.innerHTML = '';
+  data.forEach(item => {
+    const div = document.createElement('div');
+    const isPrayer = item.type === 'prayer';
+    div.className = 'activity-item ' + (isPrayer ? 'activity-prayer' : 'activity-curse');
+    const timeAgo = formatTimeAgo(new Date(item.created_at));
+    div.innerHTML =
+      '<span class="activity-icon">' + (isPrayer ? '✝' : '🔥') + '</span>' +
+      '<span class="activity-text">' +
+        '<span class="activity-name">' + escHtml(item.sender_name) + '</span>' +
+        ' sent a ' + (isPrayer ? 'prayer' : 'curse') +
+        ' to ' + escHtml(item.recipient_name) +
+      '</span>' +
+      '<span class="activity-time">' + timeAgo + '</span>';
+    feed.appendChild(div);
+  });
+}
+
+function formatTimeAgo(date) {
+  const now = new Date();
+  const diff = Math.floor((now - date) / 1000);
+  if (diff < 60) return 'just now';
+  if (diff < 3600) return Math.floor(diff/60) + 'm ago';
+  if (diff < 86400) return Math.floor(diff/3600) + 'h ago';
+  return Math.floor(diff/86400) + 'd ago';
+}
+
+function animateCount(id, target) {
+  const el = document.getElementById(id);
+  const start = parseInt(el.textContent) || 0;
+  const duration = 600;
+  const startTime = performance.now();
+  function step(now) {
+    const progress = Math.min((now - startTime) / duration, 1);
+    const ease = 1 - Math.pow(1 - progress, 3);
+    el.textContent = Math.round(start + (target - start) * ease).toLocaleString();
+    if (progress < 1) requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+}
+
+function switchPeriod(period, btn) {
+  currentPeriod = period;
+  document.querySelectorAll('.time-tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  loadPeriodStats(period);
+}
+
+function escHtml(str) {
+  return String(str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// Init + auto-refresh
+loadStats();
+setInterval(loadStats, 60000);
+</script>
+</body>
+</html>

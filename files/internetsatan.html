@@ -1,0 +1,1137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Internet Satan — Send a Curse</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=UnifrakturMaguntia&family=MedievalSharp&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400;1,600&family=Cinzel+Decorative:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://www.paypal.com/sdk/js?client-id=AWi9ByOhibHzCaFceNTaS5NhNyORdIjKyGyuCI8Eg-txsNxD0o3SGruty4eEfTUrp702mZoKtL4yfnV5&currency=USD"></script>
+<style>
+  :root {
+    --crimson: #8B0000;
+    --crimson-bright: #CC0000;
+    --crimson-deep: #4A0000;
+    --ember: #FF4500;
+    --ember-dim: #CC3300;
+    --sulfur: #C9A020;
+    --sulfur-dim: #7A5F10;
+    --ash: #1A1208;
+    --char: #0D0A06;
+    --smoke: #2A1F14;
+    --parchment-dark: #1E140A;
+    --text-bone: #D4C4A0;
+    --text-pale: #A89070;
+    --text-dim: #6B5040;
+    --hellfire: #FF6600;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--char);
+    color: var(--text-bone);
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-size: 18px;
+    line-height: 1.7;
+    min-height: 100vh;
+  }
+
+  /* ── HELL BACKGROUND ── */
+  .hell-bg {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: radial-gradient(ellipse at 50% 100%, rgba(139,0,0,0.4) 0%, rgba(70,0,0,0.2) 40%, transparent 70%),
+                radial-gradient(ellipse at 20% 80%, rgba(255,69,0,0.15) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 90%, rgba(255,69,0,0.1) 0%, transparent 40%),
+                linear-gradient(180deg, #0D0A06 0%, #120800 100%);
+    z-index: -2;
+  }
+  .ember-particle {
+    position: fixed;
+    width: 3px; height: 3px;
+    border-radius: 50%;
+    background: var(--ember);
+    z-index: -1;
+    animation: rise linear infinite;
+    opacity: 0;
+  }
+  @keyframes rise {
+    0% { transform: translateY(100vh) translateX(0) scale(1); opacity: 0; }
+    10% { opacity: 0.8; }
+    80% { opacity: 0.4; }
+    100% { transform: translateY(-20vh) translateX(var(--drift)) scale(0.2); opacity: 0; }
+  }
+
+  /* ── NAV ── */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0;
+    z-index: 100;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 32px;
+    background: rgba(13,10,6,0.95);
+    border-bottom: 1px solid rgba(139,0,0,0.5);
+    backdrop-filter: blur(8px);
+  }
+  .nav-brand {
+    font-family: 'Cinzel Decorative', serif;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--crimson-bright);
+    letter-spacing: 0.06em;
+    text-decoration: none;
+  }
+  .nav-links { display: flex; gap: 24px; align-items: center; }
+  .nav-links a {
+    font-family: 'Cinzel Decorative', serif;
+    font-size: 9px;
+    letter-spacing: 0.1em;
+    color: var(--text-pale);
+    text-decoration: none;
+    text-transform: uppercase;
+    transition: color 0.2s;
+  }
+  .nav-links a:hover { color: var(--crimson-bright); }
+  .nav-battle {
+    font-family: 'Cinzel Decorative', serif;
+    font-size: 8px;
+    letter-spacing: 0.08em;
+    color: var(--sulfur);
+    text-decoration: none;
+    border: 1px solid var(--sulfur-dim);
+    padding: 4px 12px;
+    border-radius: 2px;
+    transition: all 0.2s;
+  }
+  .nav-battle:hover { background: var(--sulfur-dim); color: var(--char); }
+
+  /* ── VIEWS ── */
+  .view { display: none; }
+  .view.active { display: block; }
+
+  /* ── HERO ── */
+  #view-home { padding-top: 120px; }
+  #hero {
+    text-align: center;
+    padding: 60px 24px 80px;
+    position: relative;
+  }
+  .pentagram {
+    display: inline-block;
+    width: 120px; height: 120px;
+    position: relative;
+    margin: 0 auto 28px;
+    animation: hellPulse 3s ease-in-out infinite;
+  }
+  .pentagram svg { width: 100%; height: 100%; }
+  @keyframes hellPulse { 0%,100%{filter:drop-shadow(0 0 8px rgba(139,0,0,0.6))} 50%{filter:drop-shadow(0 0 20px rgba(255,69,0,0.8))} }
+
+  h1.site-title {
+    font-family: 'Cinzel Decorative', serif;
+    font-size: clamp(26px, 5vw, 54px);
+    font-weight: 700;
+    color: var(--crimson-bright);
+    letter-spacing: 0.06em;
+    line-height: 1.1;
+    margin-bottom: 8px;
+    text-shadow: 0 0 40px rgba(139,0,0,0.6);
+  }
+  .site-subtitle {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: clamp(15px, 2.5vw, 20px);
+    color: var(--text-pale);
+    margin-bottom: 40px;
+  }
+  .divider-hell {
+    display: flex; align-items: center; justify-content: center;
+    gap: 16px; margin: 24px auto;
+    max-width: 400px;
+  }
+  .divider-hell::before, .divider-hell::after {
+    content: ''; flex: 1;
+    height: 1px; background: linear-gradient(to right, transparent, var(--crimson));
+  }
+  .divider-hell::after { background: linear-gradient(to left, transparent, var(--crimson)); }
+  .divider-flame { color: var(--ember); font-size: 14px; }
+
+  .hero-cta {
+    display: inline-block;
+    font-family: 'Cinzel Decorative', serif;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-bone);
+    background: linear-gradient(135deg, var(--crimson-deep) 0%, var(--crimson) 100%);
+    padding: 16px 40px;
+    border: 1px solid var(--crimson-bright);
+    cursor: pointer;
+    border-radius: 2px;
+    transition: all 0.3s;
+    text-decoration: none;
+    margin: 8px;
+  }
+  .hero-cta:hover {
+    background: linear-gradient(135deg, var(--crimson) 0%, var(--ember-dim) 100%);
+    box-shadow: 0 8px 24px rgba(139,0,0,0.5);
+    transform: translateY(-2px);
+  }
+  .hero-cta-secondary {
+    display: inline-block;
+    font-family: 'Cinzel Decorative', serif;
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    color: var(--text-pale);
+    border: 1px solid var(--text-dim);
+    padding: 15px 28px;
+    border-radius: 2px;
+    cursor: pointer;
+    background: transparent;
+    transition: all 0.2s;
+    margin: 8px;
+  }
+  .hero-cta-secondary:hover { background: rgba(139,0,0,0.2); border-color: var(--crimson); }
+
+  /* ── PRICING ── */
+  .pricing-section {
+    max-width: 960px; margin: 0 auto; padding: 60px 24px;
+  }
+  .section-heading {
+    font-family: 'Cinzel Decorative', serif;
+    font-size: 9px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--crimson-bright);
+    text-align: center;
+    margin-bottom: 8px;
+  }
+  .section-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: clamp(22px, 4vw, 38px);
+    text-align: center;
+    color: var(--text-bone);
+    margin-bottom: 48px;
+  }
+  .pricing-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 24px;
+  }
+  .pricing-card {
+    background: rgba(26,18,8,0.8);
+    border: 1px solid rgba(139,0,0,0.4);
+    border-radius: 4px;
+    padding: 32px 28px;
+    text-align: center;
+    position: relative;
+    transition: transform 0.2s, box-shadow 0.2s;
+    cursor: pointer;
+  }
+  .pricing-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 32px rgba(139,0,0,0.3);
+    border-color: var(--crimson);
+  }
+  .pricing-card.featured { border-color: var(--crimson-bright); border-width: 2px; }
+  .featured-badge {
+    position: absolute; top: -12px; left: 50%; transform: translateX(-50%);
+    background: var(--crimson);
+    color: var(--text-bone);
+    font-family: 'Cinzel Decorative', serif;
+    font-size: 8px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    padding: 3px 16px;
+    border-radius: 2px;
+  }
+  .price-icon { font-size: 32px; margin-bottom: 12px; display: block; }
+  .price-amount {
+    font-family: 'Cinzel Decorative', serif;
+    font-size: 44px;
+    font-weight: 700;
+    color: var(--crimson-bright);
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+  .price-label {
+    font-family: 'Cinzel Decorative', serif;
+    font-size: 9px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-pale);
+    margin-bottom: 16px;
+  }
+  .price-desc {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 15px;
+    color: var(--text-pale);
+    line-height: 1.5;
+    margin-bottom: 24px;
+    min-height: 60px;
+  }
+  .price-btn {
+    font-family: 'Cinzel Decorative', serif;
+    font-size: 9px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--crimson-bright);
+    border: 1px solid var(--crimson);
+    padding: 10px 20px;
+    background: transparent;
+    cursor: pointer;
+    border-radius: 2px;
+    transition: all 0.2s;
+    width: 100%;
+  }
+  .price-btn:hover, .pricing-card.featured .price-btn {
+    background: var(--crimson);
+    color: var(--text-bone);
+  }
+
+  /* ── FORM ── */
+  #view-send {
+    padding-top: 100px;
+    max-width: 680px;
+    margin: 0 auto;
+    padding-bottom: 80px;
+    padding-left: 24px;
+    padding-right: 24px;
+  }
+  .form-card {
+    background: rgba(26,18,8,0.9);
+    border: 1px solid rgba(139,0,0,0.4);
+    border-radius: 4px;
+    padding: 48px 40px;
+  }
+  .form-title {
+    font-family: 'Cinzel Decorative', serif;
+    font-size: 20px;
+    color: var(--crimson-bright);
+    margin-bottom: 4px;
+    text-align: center;
+  }
+  .form-subtitle {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    text-align: center;
+    color: var(--text-pale);
+    font-size: 16px;
+    margin-bottom: 32px;
+  }
+  .tier-pills { display: flex; gap: 8px; margin-bottom: 32px; flex-wrap: wrap; }
+  .tier-pill {
+    font-family: 'Cinzel Decorative', serif;
+    font-size: 8px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 8px 16px;
+    border: 1px solid rgba(139,0,0,0.4);
+    border-radius: 2px;
+    cursor: pointer;
+    background: transparent;
+    color: var(--text-pale);
+    transition: all 0.2s;
+    flex: 1;
+  }
+  .tier-pill.active {
+    background: var(--crimson);
+    border-color: var(--crimson);
+    color: var(--text-bone);
+  }
+  .form-group { margin-bottom: 20px; }
+  .form-label {
+    display: block;
+    font-family: 'Cinzel Decorative', serif;
+    font-size: 8px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-pale);
+    margin-bottom: 6px;
+  }
+  .form-input, .form-select, .form-textarea {
+    width: 100%;
+    padding: 12px 14px;
+    border: 1px solid rgba(139,0,0,0.4);
+    border-radius: 2px;
+    background: rgba(13,10,6,0.8);
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 16px;
+    color: var(--text-bone);
+    transition: border-color 0.2s;
+    outline: none;
+  }
+  .form-input:focus, .form-select:focus, .form-textarea:focus {
+    border-color: var(--crimson-bright);
+  }
+  .form-select option { background: var(--char); color: var(--text-bone); }
+  .form-textarea { min-height: 100px; resize: vertical; }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .price-display {
+    text-align: center;
+    margin: 28px 0;
+    padding: 20px;
+    background: rgba(139,0,0,0.15);
+    border-radius: 4px;
+    border: 1px solid rgba(139,0,0,0.3);
+  }
+  .price-display-amount {
+    font-family: 'Cinzel Decorative', serif;
+    font-size: 36px;
+    color: var(--crimson-bright);
+  }
+  .price-display-label {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    color: var(--text-pale);
+    font-size: 15px;
+  }
+  #paypal-button-container { margin-top: 24px; }
+  .form-back {
+    display: block;
+    text-align: center;
+    margin-top: 20px;
+    font-family: 'Cinzel Decorative', serif;
+    font-size: 8px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    cursor: pointer;
+    text-decoration: none;
+  }
+  .form-back:hover { color: var(--crimson-bright); }
+
+  /* ── CATEGORY ── */
+  .category-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+  .category-btn {
+    padding: 10px 8px;
+    border: 1px solid rgba(139,0,0,0.3);
+    border-radius: 2px;
+    background: transparent;
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.2s;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 14px;
+    color: var(--text-pale);
+  }
+  .category-btn:hover { border-color: var(--crimson); }
+  .category-btn.active {
+    background: rgba(139,0,0,0.3);
+    border-color: var(--crimson-bright);
+    color: var(--text-bone);
+  }
+  .category-btn .cat-icon { display: block; font-size: 20px; margin-bottom: 4px; }
+
+  /* ── CURSE PREVIEW ── */
+  .curse-preview {
+    background: rgba(139,0,0,0.1);
+    border-left: 3px solid var(--crimson);
+    padding: 20px 24px;
+    margin: 16px 0;
+    border-radius: 0 4px 4px 0;
+    display: none;
+  }
+  .curse-preview.visible { display: block; }
+  .curse-preview-title {
+    font-family: 'Cinzel Decorative', serif;
+    font-size: 8px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--crimson-bright);
+    margin-bottom: 8px;
+  }
+  .curse-preview-text {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 15px;
+    color: var(--text-bone);
+    line-height: 1.7;
+  }
+
+  /* ── LANDING PAGE ── */
+  #view-landing {
+    padding-top: 100px;
+    max-width: 680px;
+    margin: 0 auto;
+    padding-bottom: 80px;
+    padding-left: 24px;
+    padding-right: 24px;
+    text-align: center;
+  }
+  .landing-card {
+    background: rgba(26,18,8,0.95);
+    border: 1px solid rgba(139,0,0,0.5);
+    border-radius: 4px;
+    padding: 56px 48px;
+    position: relative;
+    overflow: hidden;
+  }
+  .landing-card::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0;
+    height: 4px;
+    background: linear-gradient(to right, var(--crimson-deep), var(--crimson-bright), var(--ember), var(--crimson-bright), var(--crimson-deep));
+  }
+  .landing-from {
+    font-family: 'Cinzel Decorative', serif;
+    font-size: 9px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--crimson-bright);
+    margin-bottom: 8px;
+  }
+  .landing-recipient {
+    font-family: 'Cinzel Decorative', serif;
+    font-size: 26px;
+    font-weight: 700;
+    color: var(--text-bone);
+    margin-bottom: 4px;
+  }
+  .landing-intro {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 16px;
+    color: var(--text-pale);
+    margin-bottom: 40px;
+  }
+  .landing-curse {
+    background: rgba(139,0,0,0.12);
+    border: 1px solid rgba(139,0,0,0.4);
+    border-radius: 4px;
+    padding: 32px 36px;
+    margin: 0 auto 32px;
+    text-align: left;
+  }
+  .landing-curse-title {
+    font-family: 'Cinzel Decorative', serif;
+    font-size: 9px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--crimson-bright);
+    margin-bottom: 16px;
+    text-align: center;
+  }
+  .landing-curse-text {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 18px;
+    line-height: 1.8;
+    color: var(--text-bone);
+  }
+  .landing-sender {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 15px;
+    color: var(--text-pale);
+    margin-bottom: 40px;
+  }
+  .landing-sender strong { color: var(--text-bone); font-weight: 600; }
+  .landing-cta-text {
+    font-family: 'Cinzel Decorative', serif;
+    font-size: 9px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin-bottom: 16px;
+  }
+  .landing-actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+  .btn-curse-back {
+    font-family: 'Cinzel Decorative', serif;
+    font-size: 9px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-bone);
+    background: var(--crimson);
+    border: 1px solid var(--crimson-bright);
+    cursor: pointer;
+    padding: 14px 28px;
+    border-radius: 2px;
+    transition: all 0.2s;
+  }
+  .btn-curse-back:hover { background: var(--ember-dim); }
+  .btn-pray-back {
+    font-family: 'Cinzel Decorative', serif;
+    font-size: 9px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-pale);
+    border: 1px solid var(--text-dim);
+    padding: 14px 28px;
+    border-radius: 2px;
+    cursor: pointer;
+    background: transparent;
+    transition: all 0.2s;
+    text-decoration: none;
+    display: inline-block;
+  }
+  .landing-view-count {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 13px;
+    color: var(--text-dim);
+    margin-top: 32px;
+  }
+
+  /* ── CONFIRM ── */
+  #view-confirm {
+    padding-top: 120px;
+    text-align: center;
+    max-width: 560px;
+    margin: 0 auto;
+    padding-bottom: 80px;
+    padding-left: 24px;
+    padding-right: 24px;
+  }
+  .confirm-icon { font-size: 64px; margin-bottom: 24px; animation: descend 1s ease-out; }
+  @keyframes descend { from{transform:translateY(-20px);opacity:0} to{transform:translateY(0);opacity:1} }
+  .confirm-title {
+    font-family: 'Cinzel Decorative', serif;
+    font-size: 24px;
+    color: var(--crimson-bright);
+    margin-bottom: 16px;
+  }
+  .confirm-body {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 18px;
+    color: var(--text-pale);
+    margin-bottom: 32px;
+    line-height: 1.7;
+  }
+  .confirm-link {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 12px;
+    color: var(--ember);
+    word-break: break-all;
+    background: rgba(139,0,0,0.15);
+    padding: 12px 20px;
+    border-radius: 2px;
+    display: block;
+    margin-bottom: 32px;
+  }
+
+  /* ── LOADING / ERROR ── */
+  .loading { text-align: center; padding: 60px; }
+  .loading-spinner {
+    width: 40px; height: 40px;
+    border: 2px solid rgba(139,0,0,0.2);
+    border-top-color: var(--crimson-bright);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin: 0 auto 16px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .error-msg {
+    background: rgba(139,0,0,0.2);
+    border: 1px solid rgba(204,0,0,0.5);
+    border-radius: 2px;
+    padding: 12px 16px;
+    color: #FF9999;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 15px;
+    margin: 12px 0;
+    display: none;
+  }
+  .error-msg.visible { display: block; }
+
+  /* ── FOOTER ── */
+  footer {
+    text-align: center;
+    padding: 40px 24px;
+    border-top: 1px solid rgba(139,0,0,0.3);
+    margin-top: 60px;
+  }
+  .footer-logo {
+    font-family: 'Cinzel Decorative', serif;
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    color: var(--crimson-bright);
+    margin-bottom: 8px;
+  }
+  .footer-links { display: flex; gap: 24px; justify-content: center; flex-wrap: wrap; }
+  .footer-links a {
+    font-family: 'Cinzel Decorative', serif;
+    font-size: 8px;
+    letter-spacing: 0.08em;
+    color: var(--text-dim);
+    text-decoration: none;
+  }
+  .footer-links a:hover { color: var(--crimson-bright); }
+
+  @media (max-width: 600px) {
+    .form-card { padding: 32px 20px; }
+    .form-row { grid-template-columns: 1fr; }
+    .landing-card { padding: 36px 24px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="hell-bg"></div>
+<!-- Ember particles (generated by JS) -->
+
+<nav>
+  <a class="nav-brand" href="#" onclick="showView('home')">🔥 Internet Satan</a>
+  <div class="nav-links">
+    <a href="#" onclick="showView('send')">Send a Curse</a>
+    <a href="https://internetjesus.com" target="_blank">Internet Jesus</a>
+    <a href="https://battlefortheinternet soul.com" target="_blank" class="nav-battle">⚔ Battle for the Soul</a>
+  </div>
+</nav>
+
+<!-- ══ HOME VIEW ══ -->
+<div id="view-home" class="view active">
+  <section id="hero">
+    <div class="pentagram">
+      <svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="60" cy="60" r="56" fill="none" stroke="#8B0000" stroke-width="1.5"/>
+        <circle cx="60" cy="60" r="46" fill="none" stroke="rgba(139,0,0,0.3)" stroke-width="0.5"/>
+        <polygon points="60,8 76,52 118,52 84,78 96,118 60,94 24,118 36,78 2,52 44,52"
+          fill="none" stroke="#CC0000" stroke-width="1.5"
+          style="filter:drop-shadow(0 0 6px rgba(255,69,0,0.6))"/>
+        <text x="60" y="68" text-anchor="middle" font-size="28" fill="#8B0000">☽</text>
+      </svg>
+    </div>
+    <h1 class="site-title">Internet Satan</h1>
+    <p class="site-subtitle">Infernal Maledictions Delivered to Your Enemies Since the Dark Ages of Dial-Up</p>
+    <div class="divider-hell"><span class="divider-flame">🔥</span></div>
+    <p style="font-family:'Cormorant Garamond',serif;font-size:19px;color:var(--text-pale);max-width:540px;margin:0 auto 40px;line-height:1.7;font-style:italic;">
+      Someone has earned your wrath. Send them a proper curse — drawn from the ancient traditions of biblical imprecation, Celtic malediction, and the complete works of human grievance.
+    </p>
+    <button class="hero-cta" onclick="startSend('topical')">🔥 Send a Curse — $1</button>
+    <button class="hero-cta-secondary" onclick="scrollToPricing()">View the Infernal Offerings</button>
+  </section>
+
+  <div class="pricing-section">
+    <p class="section-heading">Choose Your Malediction</p>
+    <h2 class="section-title">Curses for Every Transgression</h2>
+    <div class="pricing-grid">
+      <div class="pricing-card" onclick="startSend('random')">
+        <span class="price-icon">🎲</span>
+        <div class="price-amount">$1</div>
+        <div class="price-label">Random Curse</div>
+        <div class="price-desc">A curse drawn from the Infernal Archive. The Dark One chooses for you.</div>
+        <button class="price-btn">Send a Random Curse</button>
+      </div>
+      <div class="pricing-card featured" onclick="startSend('topical')">
+        <div class="featured-badge">Most Chosen</div>
+        <span class="price-icon">🎯</span>
+        <div class="price-amount">$5</div>
+        <div class="price-label">Targeted Curse</div>
+        <div class="price-desc">Select the precise affliction for their exact transgression. Targeted suffering.</div>
+        <button class="price-btn">Choose Your Curse</button>
+      </div>
+      <div class="pricing-card" onclick="startSend('custom')">
+        <span class="price-icon">✍️</span>
+        <div class="price-amount">$10</div>
+        <div class="price-label">Custom Damnation</div>
+        <div class="price-desc">Write your own grievance. We translate it into proper infernal malediction.</div>
+        <button class="price-btn">Compose a Curse</button>
+      </div>
+    </div>
+  </div>
+
+  <div style="text-align:center;padding:40px 24px 80px;">
+    <div class="divider-hell" style="max-width:300px;margin:0 auto 32px;"><span class="divider-flame">🔥</span></div>
+    <p style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:18px;color:var(--text-pale);max-width:500px;margin:0 auto 16px;">
+      "Cursed shalt thou be in the city, and cursed shalt thou be in the field."
+    </p>
+    <p style="font-family:'Cinzel Decorative',serif;font-size:8px;letter-spacing:0.12em;color:var(--crimson-bright);">
+      Deuteronomy 28:16 (Also Available for $1)
+    </p>
+  </div>
+</div>
+
+<!-- ══ SEND VIEW ══ -->
+<div id="view-send" class="view">
+  <div class="form-card">
+    <p class="form-title">🔥 Dispatch a Curse</p>
+    <p class="form-subtitle" id="form-subtitle">Select your malediction and fill in the damned fields below.</p>
+
+    <div class="tier-pills">
+      <button class="tier-pill" id="pill-random" onclick="setTier('random')">$1 — Random</button>
+      <button class="tier-pill" id="pill-topical" onclick="setTier('topical')">$5 — Targeted</button>
+      <button class="tier-pill" id="pill-custom" onclick="setTier('custom')">$10 — Custom</button>
+    </div>
+
+    <div id="category-section" style="display:none;">
+      <div class="form-label">Choose a Category</div>
+      <div class="category-grid" id="category-grid"></div>
+      <div id="curse-picker-section" style="display:none;">
+        <label class="form-label">Choose Your Curse</label>
+        <select class="form-select" id="curse-select" onchange="previewCurse()">
+          <option value="">— Select a curse —</option>
+        </select>
+        <div class="curse-preview" id="curse-preview">
+          <div class="curse-preview-title">Preview</div>
+          <div class="curse-preview-text" id="curse-preview-text"></div>
+        </div>
+      </div>
+    </div>
+
+    <div id="custom-section" style="display:none;">
+      <div class="form-group">
+        <label class="form-label">Your Grievance (we shall damnify it)</label>
+        <textarea class="form-textarea" id="custom-text" placeholder="Describe the transgression... we will translate it into proper infernal language and deliver it with full ceremony."></textarea>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Your Name</label>
+        <input class="form-input" id="sender-name" type="text" placeholder="The Aggrieved Party">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Your Email (optional)</label>
+        <input class="form-input" id="sender-email" type="email" placeholder="For your records">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Recipient's Name</label>
+        <input class="form-input" id="recipient-name" type="text" placeholder="Who earns this wrath">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Recipient's Email</label>
+        <input class="form-input" id="recipient-email" type="email" placeholder="Where damnation shall arrive">
+      </div>
+    </div>
+
+    <div class="price-display">
+      <div class="price-display-amount" id="price-amount-display">$1</div>
+      <div class="price-display-label" id="price-tier-display">Random Curse — One malediction, chosen by the Dark One</div>
+    </div>
+
+    <div class="error-msg" id="form-error"></div>
+    <div id="paypal-button-container"></div>
+    <a class="form-back" href="#" onclick="showView('home')">← Return to the Pit</a>
+  </div>
+</div>
+
+<!-- ══ LANDING VIEW ══ -->
+<div id="view-landing" class="view">
+  <div class="landing-card">
+    <div class="loading" id="landing-loading">
+      <div class="loading-spinner"></div>
+      <p style="font-family:'Cormorant Garamond',serif;font-style:italic;color:var(--text-pale);">Retrieving your curse from the infernal archives…</p>
+    </div>
+    <div id="landing-content" style="display:none;">
+      <div class="landing-from">A Curse Has Been Sent to You</div>
+      <div class="landing-recipient" id="landing-name"></div>
+      <div class="landing-intro" id="landing-intro"></div>
+      <div class="divider-hell"><span class="divider-flame">🔥</span></div>
+      <div class="landing-curse">
+        <div class="landing-curse-title">Your Curse</div>
+        <div class="landing-curse-text" id="landing-curse-text"></div>
+      </div>
+      <div class="landing-sender" id="landing-sender-text"></div>
+      <div class="landing-cta-text">Retaliate</div>
+      <div class="landing-actions">
+        <button class="btn-curse-back" onclick="startSend('topical')">🔥 Curse Them Back</button>
+        <a class="btn-pray-back" href="https://internetjesus.com" target="_blank">✝ Send a Prayer Instead</a>
+      </div>
+      <div class="landing-view-count" id="landing-view-count"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ CONFIRM VIEW ══ -->
+<div id="view-confirm" class="view">
+  <div class="confirm-icon">😈</div>
+  <h2 class="confirm-title">Your Curse Has Been Dispatched</h2>
+  <p class="confirm-body" id="confirm-body">
+    The malediction has been sent forth unto <strong id="confirm-recipient"></strong>. May it find fertile ground.
+  </p>
+  <p style="font-family:'Cinzel Decorative',serif;font-size:8px;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-dim);margin-bottom:8px;">Their Curse Awaits At</p>
+  <div class="confirm-link" id="confirm-link"></div>
+  <button class="hero-cta" onclick="startSend('topical')">Send Another Curse</button>
+</div>
+
+<footer>
+  <div class="footer-logo">🔥 INTERNET SATAN</div>
+  <div class="divider-hell" style="max-width:200px;margin:12px auto;"><span class="divider-flame">🔥</span></div>
+  <div class="footer-links">
+    <a href="https://internetjesus.com" target="_blank">Internet Jesus</a>
+    <a href="https://battlefortheinternet soul.com" target="_blank">Battle for the Internet Soul</a>
+    <a href="#" onclick="showView('home')">Home</a>
+    <a href="admin.html">Admin</a>
+  </div>
+  <p style="font-family:'Cormorant Garamond',serif;font-size:13px;color:var(--text-dim);margin-top:16px;">
+    © 2025 Internet Satan LLC · For entertainment purposes · Curses not guaranteed to reach anyone
+  </p>
+</footer>
+
+<script>
+const SUPABASE_URL = 'YOUR_SUPABASE_URL';
+const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
+const PAYPAL_CLIENT_ID = 'AWi9ByOhibHzCaFceNTaS5NhNyORdIjKyGyuCI8Eg-txsNxD0o3SGruty4eEfTUrp702mZoKtL4yfnV5';
+const SITE_URL = 'https://internetsatan.com';
+const SITE_TYPE = 'curse';
+
+const { createClient } = supabase;
+const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+let currentTier = 'topical';
+let selectedCategory = null;
+let selectedCurseId = null;
+let selectedCurseText = null;
+let cursesByCategory = {};
+let allCategories = [];
+
+const TIERS = {
+  random:  { price: 1.00, label: 'Random Curse',     desc: 'One malediction, chosen by the Dark One' },
+  topical: { price: 5.00, label: 'Targeted Curse',   desc: 'Choose the category and specific curse' },
+  custom:  { price: 10.00, label: 'Custom Damnation', desc: 'Your grievance, translated into infernal language' }
+};
+
+// Ember particles
+(function() {
+  for (let i = 0; i < 20; i++) {
+    const p = document.createElement('div');
+    p.className = 'ember-particle';
+    p.style.cssText = `
+      left:${Math.random()*100}%;
+      bottom: -10px;
+      --drift:${(Math.random()-0.5)*80}px;
+      animation-duration:${4+Math.random()*6}s;
+      animation-delay:${Math.random()*8}s;
+      width:${2+Math.random()*3}px;
+      height:${2+Math.random()*3}px;
+    `;
+    document.body.appendChild(p);
+  }
+})();
+
+function showView(name) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.getElementById('view-' + name).classList.add('active');
+  window.scrollTo(0, 0);
+}
+function scrollToPricing() {
+  document.querySelector('.pricing-section').scrollIntoView({ behavior: 'smooth' });
+}
+function startSend(tier) {
+  showView('send');
+  setTier(tier);
+}
+function setTier(tier) {
+  currentTier = tier;
+  document.querySelectorAll('.tier-pill').forEach(p => p.classList.remove('active'));
+  document.getElementById('pill-' + tier).classList.add('active');
+  document.getElementById('category-section').style.display = (tier === 'topical') ? 'block' : 'none';
+  document.getElementById('custom-section').style.display = (tier === 'custom') ? 'block' : 'none';
+  const t = TIERS[tier];
+  document.getElementById('price-amount-display').textContent = '$' + t.price.toFixed(0);
+  document.getElementById('price-tier-display').textContent = t.label + ' — ' + t.desc;
+  const subtitles = {
+    random:  'A curse shall be chosen for you from the Infernal Archive.',
+    topical: 'Choose a category of transgression, then select your malediction.',
+    custom:  'Describe the grievance and we will damnify it with full ceremony.'
+  };
+  document.getElementById('form-subtitle').textContent = subtitles[tier];
+  if (tier === 'topical' && allCategories.length === 0) loadCategories();
+  renderPayPalButton();
+}
+
+async function loadCategories() {
+  const { data, error } = await sb
+    .from('content')
+    .select('category')
+    .eq('type', 'curse')
+    .eq('active', true);
+  if (error) return;
+  const cats = [...new Set(data.map(r => r.category))].filter(Boolean).sort();
+  allCategories = cats;
+  renderCategories();
+}
+
+const CATEGORY_ICONS = {
+  'Betrayal':           '🗡️',
+  'Career Sabotage':    '💼',
+  'Romantic Rival':     '💔',
+  'Sports Enemy':       '🏆',
+  'General Wrath':      '☠️',
+  'Petty Vengeance':    '😤',
+  'Road Rage':          '🚗',
+  'Biblical Smiting':   '📖',
+  'Ancient Celtic':     '🌿',
+  'Sleep Deprivation':  '🌙',
+  'Financial Ruin':     '💸',
+  'Social Humiliation': '😳'
+};
+
+function renderCategories() {
+  const grid = document.getElementById('category-grid');
+  grid.innerHTML = '';
+  allCategories.forEach(cat => {
+    const btn = document.createElement('button');
+    btn.className = 'category-btn';
+    btn.innerHTML = '<span class="cat-icon">' + (CATEGORY_ICONS[cat] || '🔥') + '</span>' + cat;
+    btn.onclick = () => selectCategory(cat, btn);
+    grid.appendChild(btn);
+  });
+}
+
+async function selectCategory(cat, btn) {
+  document.querySelectorAll('.category-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  selectedCategory = cat;
+  selectedCurseId = null;
+  selectedCurseText = null;
+  if (!cursesByCategory[cat]) {
+    const { data } = await sb
+      .from('content')
+      .select('id, title, text')
+      .eq('type', 'curse')
+      .eq('category', cat)
+      .eq('active', true)
+      .order('title');
+    if (data) cursesByCategory[cat] = data;
+  }
+  const curses = cursesByCategory[cat] || [];
+  const sel = document.getElementById('curse-select');
+  sel.innerHTML = '<option value="">— Select a curse —</option>';
+  curses.forEach(c => {
+    const opt = document.createElement('option');
+    opt.value = c.id; opt.textContent = c.title; opt.dataset.text = c.text;
+    sel.appendChild(opt);
+  });
+  document.getElementById('curse-picker-section').style.display = curses.length ? 'block' : 'none';
+  document.getElementById('curse-preview').classList.remove('visible');
+}
+
+function previewCurse() {
+  const sel = document.getElementById('curse-select');
+  const opt = sel.options[sel.selectedIndex];
+  if (!opt || !opt.value) {
+    selectedCurseId = null; selectedCurseText = null;
+    document.getElementById('curse-preview').classList.remove('visible');
+    return;
+  }
+  selectedCurseId = opt.value;
+  selectedCurseText = opt.dataset.text;
+  document.getElementById('curse-preview-text').textContent = selectedCurseText;
+  document.getElementById('curse-preview').classList.add('visible');
+}
+
+function validateForm() {
+  const senderName     = document.getElementById('sender-name').value.trim();
+  const recipientName  = document.getElementById('recipient-name').value.trim();
+  const recipientEmail = document.getElementById('recipient-email').value.trim();
+  if (!senderName)     { showError('Please enter your name.'); return false; }
+  if (!recipientName)  { showError('Please enter the recipient\'s name.'); return false; }
+  if (!recipientEmail || !recipientEmail.includes('@')) { showError('Please enter a valid recipient email.'); return false; }
+  if (currentTier === 'topical' && !selectedCurseId) { showError('Please choose a category and select a curse.'); return false; }
+  if (currentTier === 'custom' && !document.getElementById('custom-text').value.trim()) { showError('Please write your grievance.'); return false; }
+  document.getElementById('form-error').classList.remove('visible');
+  return true;
+}
+function showError(msg) {
+  const err = document.getElementById('form-error');
+  err.textContent = msg; err.classList.add('visible');
+}
+
+function renderPayPalButton() {
+  const container = document.getElementById('paypal-button-container');
+  container.innerHTML = '';
+  paypal.Buttons({
+    style: { color: 'black', shape: 'rect', label: 'pay', height: 48 },
+    createOrder: (data, actions) => {
+      if (!validateForm()) return Promise.reject(new Error('validation'));
+      return actions.order.create({
+        purchase_units: [{
+          amount: { value: TIERS[currentTier].price.toFixed(2) },
+          description: 'InternetSatan — ' + TIERS[currentTier].label
+        }]
+      });
+    },
+    onApprove: async (data, actions) => {
+      const order = await actions.order.capture();
+      await processOrder(order);
+    },
+    onError: (err) => { showError('Payment error. Please try again.'); console.error(err); }
+  }).render('#paypal-button-container');
+}
+
+async function processOrder(order) {
+  const senderName     = document.getElementById('sender-name').value.trim();
+  const senderEmail    = document.getElementById('sender-email').value.trim();
+  const recipientName  = document.getElementById('recipient-name').value.trim();
+  const recipientEmail = document.getElementById('recipient-email').value.trim();
+  const customText     = document.getElementById('custom-text')?.value.trim();
+  const slug = generateSlug();
+  let contentId = selectedCurseId;
+  let curseText = selectedCurseText;
+  if (currentTier === 'random') {
+    const { data } = await sb.from('content').select('id,text').eq('type','curse').eq('active',true).limit(100);
+    if (data && data.length) {
+      const pick = data[Math.floor(Math.random()*data.length)];
+      contentId = pick.id; curseText = pick.text;
+    }
+  } else if (currentTier === 'custom') {
+    curseText = customText; contentId = null;
+  }
+  const { data: tx, error } = await sb.from('transactions').insert({
+    type: 'curse', tier: currentTier, price_paid: TIERS[currentTier].price,
+    sender_name: senderName, sender_email: senderEmail || null,
+    recipient_name: recipientName, recipient_email: recipientEmail,
+    content_id: contentId || null, custom_text: currentTier === 'custom' ? customText : null,
+    paypal_order_id: order.id, slug, delivered: false, view_count: 0
+  }).select().single();
+  if (error) { showError('Something went wrong. Please contact us.'); return; }
+  await sendEmail({ slug, recipientName, recipientEmail, senderName, curseText: curseText || customText, tier: currentTier, landingUrl: SITE_URL + '/?curse=' + slug });
+  document.getElementById('confirm-recipient').textContent = recipientName;
+  document.getElementById('confirm-link').textContent = SITE_URL + '/?curse=' + slug;
+  showView('confirm');
+}
+
+async function sendEmail(payload) {
+  try {
+    await fetch('send-curse.php', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+  } catch(e) { console.error('Email error', e); }
+}
+
+function generateSlug() {
+  const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
+  return Array.from({ length: 10 }, () => chars[Math.floor(Math.random()*chars.length)]).join('');
+}
+
+async function loadLandingPage(slug) {
+  showView('landing');
+  const { data, error } = await sb.from('transactions').select('*, content:content_id(title,text)').eq('slug', slug).eq('type','curse').single();
+  document.getElementById('landing-loading').style.display = 'none';
+  document.getElementById('landing-content').style.display = 'block';
+  if (error || !data) {
+    document.getElementById('landing-content').innerHTML = '<p style="font-family:\'Cormorant Garamond\',serif;font-style:italic;color:var(--text-pale);text-align:center;padding:40px;">This curse could not be retrieved. Perhaps it has already run its course.</p>';
+    return;
+  }
+  const curseText = data.custom_text || (data.content && data.content.text) || '';
+  document.getElementById('landing-name').textContent = data.recipient_name;
+  document.getElementById('landing-intro').textContent = 'Someone has cursed you. Whether you deserve it is between you and the Dark One.';
+  document.getElementById('landing-curse-text').textContent = curseText;
+  document.getElementById('landing-sender-text').innerHTML = 'Sent with considerable malice by <strong>' + escHtml(data.sender_name) + '</strong>';
+  const newCount = (data.view_count || 0) + 1;
+  await sb.from('transactions').update({ view_count: newCount }).eq('slug', slug);
+  if (newCount > 1) document.getElementById('landing-view-count').textContent = 'This curse has been viewed ' + newCount + ' times.';
+}
+
+function escHtml(str) {
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function router() {
+  const params = new URLSearchParams(window.location.search);
+  const curseSlug = params.get('curse');
+  if (curseSlug) { loadLandingPage(curseSlug); }
+  else { showView('home'); renderPayPalButton(); }
+}
+
+window.addEventListener('DOMContentLoaded', () => { router(); });
+</script>
+</body>
+</html>

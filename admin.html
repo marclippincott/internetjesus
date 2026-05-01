@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin — Battle for the Internet Soul</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root {
+    --bg: #0F0E0C; --surface: #1A1810; --border: rgba(255,255,255,0.1);
+    --gold: #C9A84C; --gold-dim: #7A5F10;
+    --text: #D4C4A0; --text-dim: #6B5040; --text-bright: #F0E0C0;
+    --prayer: #4A90C0; --curse: #AA2200;
+    --green: #2D6A2D; --green-bright: #4CAF50;
+    --red: #6A1515; --red-bright: #CC4444;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:var(--bg); color:var(--text); font-family:'Crimson Text',Georgia,serif; font-size:16px; }
+
+  /* Auth */
+  #auth-wall {
+    display:flex; align-items:center; justify-content:center;
+    min-height:100vh;
+  }
+  .auth-card {
+    background:var(--surface); border:1px solid var(--border);
+    border-radius:4px; padding:48px 40px; text-align:center; width:360px;
+  }
+  .auth-title { font-family:'Cinzel',serif; font-size:18px; color:var(--gold); margin-bottom:24px; }
+  .auth-input {
+    width:100%; padding:10px 14px; background:rgba(0,0,0,0.4);
+    border:1px solid var(--border); border-radius:2px;
+    color:var(--text); font-family:'Crimson Text',serif; font-size:16px;
+    outline:none; margin-bottom:16px;
+  }
+  .auth-input:focus { border-color:var(--gold); }
+  .auth-btn {
+    width:100%; padding:10px; background:var(--gold-dim);
+    border:1px solid var(--gold); color:var(--text-bright);
+    font-family:'Cinzel',serif; font-size:11px; letter-spacing:0.1em;
+    text-transform:uppercase; cursor:pointer; border-radius:2px;
+  }
+  .auth-btn:hover { background:var(--gold); color:#000; }
+
+  /* Layout */
+  #admin-ui { display:none; }
+  nav.admin-nav {
+    background:var(--surface); border-bottom:1px solid var(--border);
+    padding:12px 24px; display:flex; align-items:center; gap:24px;
+  }
+  .nav-title { font-family:'Cinzel',serif; font-size:14px; color:var(--gold); }
+  .nav-tab {
+    font-family:'Cinzel',serif; font-size:10px; letter-spacing:0.1em;
+    text-transform:uppercase; color:var(--text-dim); background:transparent;
+    border:none; cursor:pointer; padding:6px 16px; border-radius:2px;
+    transition:all 0.2s;
+  }
+  .nav-tab:hover { color:var(--text); background:rgba(255,255,255,0.05); }
+  .nav-tab.active { color:var(--gold); background:rgba(201,168,76,0.1); }
+
+  .admin-section { display:none; padding:32px 24px; max-width:1200px; margin:0 auto; }
+  .admin-section.active { display:block; }
+
+  /* Stats bar */
+  .stats-bar {
+    display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr));
+    gap:12px; margin-bottom:32px;
+  }
+  .stat-pill {
+    background:var(--surface); border:1px solid var(--border);
+    border-radius:4px; padding:16px; text-align:center;
+  }
+  .stat-pill-num { font-family:'Cinzel',serif; font-size:28px; color:var(--text-bright); }
+  .stat-pill-lbl { font-size:12px; color:var(--text-dim); margin-top:4px; }
+
+  /* Tables */
+  .section-head {
+    display:flex; align-items:center; justify-content:space-between;
+    margin-bottom:16px;
+  }
+  .section-title { font-family:'Cinzel',serif; font-size:14px; color:var(--text-bright); }
+  table { width:100%; border-collapse:collapse; font-size:14px; }
+  th {
+    font-family:'Cinzel',serif; font-size:9px; letter-spacing:0.12em;
+    text-transform:uppercase; color:var(--text-dim); text-align:left;
+    padding:8px 12px; border-bottom:1px solid var(--border);
+  }
+  td { padding:10px 12px; border-bottom:1px solid rgba(255,255,255,0.04); vertical-align:top; }
+  tr:hover td { background:rgba(255,255,255,0.02); }
+  .badge {
+    display:inline-block; padding:2px 10px; border-radius:2px;
+    font-family:'Cinzel',serif; font-size:9px; letter-spacing:0.08em;
+    text-transform:uppercase;
+  }
+  .badge-prayer { background:rgba(74,144,192,0.2); color:#7BC8F0; border:1px solid rgba(74,144,192,0.3); }
+  .badge-curse  { background:rgba(170,34,0,0.25);  color:#FF9977; border:1px solid rgba(170,34,0,0.4); }
+  .badge-active   { background:rgba(45,106,45,0.2); color:#4CAF50; border:1px solid rgba(45,106,45,0.4); }
+  .badge-inactive { background:rgba(80,0,0,0.2);    color:#CC4444; border:1px solid rgba(80,0,0,0.4); }
+
+  /* Form */
+  .form-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+  .form-group { margin-bottom:16px; }
+  .form-label {
+    display:block; font-family:'Cinzel',serif; font-size:9px;
+    letter-spacing:0.12em; text-transform:uppercase; color:var(--text-dim);
+    margin-bottom:6px;
+  }
+  .form-input, .form-select, .form-textarea {
+    width:100%; padding:9px 12px; background:rgba(0,0,0,0.4);
+    border:1px solid var(--border); border-radius:2px;
+    color:var(--text); font-family:'Crimson Text',serif; font-size:15px;
+    outline:none;
+  }
+  .form-input:focus,.form-select:focus,.form-textarea:focus { border-color:var(--gold); }
+  .form-select option { background:#1A1810; color:var(--text); }
+  .form-textarea { min-height:100px; resize:vertical; }
+  .btn-primary {
+    font-family:'Cinzel',serif; font-size:10px; letter-spacing:0.1em;
+    text-transform:uppercase; color:var(--text-bright);
+    background:var(--gold-dim); border:1px solid var(--gold);
+    padding:10px 24px; border-radius:2px; cursor:pointer;
+  }
+  .btn-primary:hover { background:var(--gold); color:#000; }
+  .btn-danger {
+    font-family:'Cinzel',serif; font-size:9px; letter-spacing:0.08em;
+    text-transform:uppercase; color:#CC4444;
+    background:rgba(80,0,0,0.2); border:1px solid rgba(120,0,0,0.4);
+    padding:4px 12px; border-radius:2px; cursor:pointer;
+  }
+  .btn-sm {
+    font-family:'Cinzel',serif; font-size:9px; letter-spacing:0.08em;
+    text-transform:uppercase; color:var(--text-dim);
+    background:rgba(255,255,255,0.05); border:1px solid var(--border);
+    padding:4px 12px; border-radius:2px; cursor:pointer;
+  }
+  .btn-sm:hover { color:var(--text); background:rgba(255,255,255,0.08); }
+  .add-form {
+    background:var(--surface); border:1px solid var(--border);
+    border-radius:4px; padding:24px; margin-bottom:24px;
+  }
+  .add-form-title {
+    font-family:'Cinzel',serif; font-size:12px; color:var(--gold);
+    margin-bottom:20px; letter-spacing:0.08em; text-transform:uppercase;
+  }
+  .filter-row {
+    display:flex; gap:12px; margin-bottom:16px; flex-wrap:wrap;
+    align-items:center;
+  }
+  .filter-row select, .filter-row input {
+    padding:7px 12px; background:rgba(0,0,0,0.4);
+    border:1px solid var(--border); border-radius:2px;
+    color:var(--text); font-family:'Crimson Text',serif; font-size:14px;
+    outline:none;
+  }
+  .filter-row select option { background:#1A1810; }
+  .toast {
+    position:fixed; bottom:24px; right:24px; z-index:999;
+    background:var(--surface); border:1px solid var(--gold);
+    border-radius:4px; padding:12px 20px;
+    font-family:'Cinzel',serif; font-size:11px; color:var(--gold);
+    opacity:0; transition:opacity 0.3s; pointer-events:none;
+  }
+  .toast.show { opacity:1; }
+  .text-preview {
+    max-width:300px; white-space:nowrap; overflow:hidden;
+    text-overflow:ellipsis; font-style:italic; color:var(--text-dim); font-size:13px;
+  }
+  .pagination { display:flex; gap:8px; margin-top:16px; align-items:center; justify-content:center; }
+  .page-info { font-size:13px; color:var(--text-dim); }
+</style>
+</head>
+<body>
+
+<div id="auth-wall">
+  <div class="auth-card">
+    <div class="auth-title">⚔ Admin — Battle for the Soul</div>
+    <input class="auth-input" type="password" id="admin-password" placeholder="Enter password" onkeydown="if(event.key==='Enter')checkAuth()">
+    <button class="auth-btn" onclick="checkAuth()">Enter the Sanctum</button>
+  </div>
+</div>
+
+<div id="admin-ui">
+  <nav class="admin-nav">
+    <span class="nav-title">⚔ Admin</span>
+    <button class="nav-tab active" onclick="switchTab('dashboard')">Dashboard</button>
+    <button class="nav-tab" onclick="switchTab('content')">Content Library</button>
+    <button class="nav-tab" onclick="switchTab('transactions')">Transactions</button>
+    <button class="nav-tab" onclick="switchTab('add')">Add Content</button>
+  </nav>
+
+  <!-- DASHBOARD -->
+  <div class="admin-section active" id="tab-dashboard">
+    <div class="stats-bar" id="stats-bar">
+      <div class="stat-pill"><div class="stat-pill-num" id="stat-total">—</div><div class="stat-pill-lbl">Total Transactions</div></div>
+      <div class="stat-pill"><div class="stat-pill-num" id="stat-prayers">—</div><div class="stat-pill-lbl">Prayers Sent</div></div>
+      <div class="stat-pill"><div class="stat-pill-num" id="stat-curses">—</div><div class="stat-pill-lbl">Curses Dispatched</div></div>
+      <div class="stat-pill"><div class="stat-pill-num" id="stat-revenue">—</div><div class="stat-pill-lbl">Total Revenue</div></div>
+      <div class="stat-pill"><div class="stat-pill-num" id="stat-content">—</div><div class="stat-pill-lbl">Content Items</div></div>
+      <div class="stat-pill"><div class="stat-pill-num" id="stat-today">—</div><div class="stat-pill-lbl">Today</div></div>
+    </div>
+
+    <div class="section-head"><span class="section-title">Recent Activity</span></div>
+    <table>
+      <thead><tr>
+        <th>Time</th><th>Type</th><th>Tier</th><th>From</th><th>To</th><th>Email</th><th>Amount</th><th>Slug</th>
+      </tr></thead>
+      <tbody id="recent-tbody"></tbody>
+    </table>
+  </div>
+
+  <!-- CONTENT -->
+  <div class="admin-section" id="tab-content">
+    <div class="filter-row">
+      <select id="filter-type" onchange="loadContent()">
+        <option value="">All Types</option>
+        <option value="prayer">Prayers</option>
+        <option value="curse">Curses</option>
+      </select>
+      <select id="filter-category" onchange="loadContent()">
+        <option value="">All Categories</option>
+      </select>
+      <select id="filter-active" onchange="loadContent()">
+        <option value="">Any Status</option>
+        <option value="true">Active</option>
+        <option value="false">Inactive</option>
+      </select>
+      <span id="content-count" style="font-size:13px;color:var(--text-dim);"></span>
+    </div>
+    <table>
+      <thead><tr>
+        <th>Type</th><th>Category</th><th>Title</th><th>Preview</th><th>Source</th><th>Tier</th><th>Status</th><th>Actions</th>
+      </tr></thead>
+      <tbody id="content-tbody"></tbody>
+    </table>
+  </div>
+
+  <!-- TRANSACTIONS -->
+  <div class="admin-section" id="tab-transactions">
+    <div class="filter-row">
+      <select id="tx-filter-type" onchange="loadTransactions()">
+        <option value="">All Types</option>
+        <option value="prayer">Prayers</option>
+        <option value="curse">Curses</option>
+      </select>
+      <select id="tx-filter-tier" onchange="loadTransactions()">
+        <option value="">All Tiers</option>
+        <option value="random">Random ($1)</option>
+        <option value="topical">Topical ($5)</option>
+        <option value="custom">Custom ($10)</option>
+      </select>
+      <span id="tx-count" style="font-size:13px;color:var(--text-dim);"></span>
+    </div>
+    <table>
+      <thead><tr>
+        <th>Date</th><th>Type</th><th>Tier</th><th>$</th><th>From</th><th>To Email</th><th>Views</th><th>Delivered</th><th>Link</th>
+      </tr></thead>
+      <tbody id="tx-tbody"></tbody>
+    </table>
+    <div class="pagination" id="tx-pagination"></div>
+  </div>
+
+  <!-- ADD CONTENT -->
+  <div class="admin-section" id="tab-add">
+    <div class="add-form">
+      <div class="add-form-title">Add New Content</div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label class="form-label">Type</label>
+          <select class="form-select" id="add-type">
+            <option value="prayer">Prayer</option>
+            <option value="curse">Curse</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Tier</label>
+          <select class="form-select" id="add-tier">
+            <option value="topical">Topical (category-specific)</option>
+            <option value="random">Random pool</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Category</label>
+          <input class="form-input" id="add-category" placeholder="e.g. Biblical Smiting, Love & Relationships">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Title</label>
+          <input class="form-input" id="add-title" placeholder="Short title for the dropdown">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Full Text</label>
+        <textarea class="form-textarea" id="add-text" style="min-height:140px;" placeholder="The complete prayer or curse text..."></textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Source (optional)</label>
+        <input class="form-input" id="add-source" placeholder="e.g. Psalm 23, Deuteronomy 28, Celtic tradition, Original">
+      </div>
+      <button class="btn-primary" onclick="addContent()">Save to Library</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const SUPABASE_URL = 'YOUR_SUPABASE_URL';
+const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
+const ADMIN_PASSWORD = 'YOUR_ADMIN_PASSWORD'; // Change this
+const { createClient } = supabase;
+const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+// ── AUTH ──
+function checkAuth() {
+  const pw = document.getElementById('admin-password').value;
+  if (pw === ADMIN_PASSWORD) {
+    document.getElementById('auth-wall').style.display = 'none';
+    document.getElementById('admin-ui').style.display = 'block';
+    loadDashboard();
+  } else {
+    document.getElementById('admin-password').style.borderColor = '#CC4444';
+    setTimeout(() => document.getElementById('admin-password').style.borderColor = '', 2000);
+  }
+}
+
+// ── TABS ──
+function switchTab(name) {
+  document.querySelectorAll('.admin-section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  event.target.classList.add('active');
+  if (name === 'dashboard')    loadDashboard();
+  if (name === 'content')      loadContent();
+  if (name === 'transactions') loadTransactions();
+}
+
+// ── TOAST ──
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg; el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 2500);
+}
+
+// ── DASHBOARD ──
+async function loadDashboard() {
+  const { data: txData } = await sb.from('transactions').select('type, tier, price_paid, created_at, sender_name, recipient_name, recipient_email, slug, view_count, delivered');
+  const { count: contentCount } = await sb.from('content').select('*', { count: 'exact', head: true });
+
+  if (txData) {
+    const prayers  = txData.filter(r => r.type === 'prayer').length;
+    const curses   = txData.filter(r => r.type === 'curse').length;
+    const revenue  = txData.reduce((s, r) => s + parseFloat(r.price_paid||0), 0);
+    const today    = txData.filter(r => r.created_at && new Date(r.created_at).toDateString() === new Date().toDateString()).length;
+
+    document.getElementById('stat-total').textContent    = txData.length.toLocaleString();
+    document.getElementById('stat-prayers').textContent  = prayers.toLocaleString();
+    document.getElementById('stat-curses').textContent   = curses.toLocaleString();
+    document.getElementById('stat-revenue').textContent  = '$' + revenue.toFixed(2);
+    document.getElementById('stat-today').textContent    = today;
+
+    const sorted = [...txData].sort((a,b) => new Date(b.created_at) - new Date(a.created_at)).slice(0,30);
+    const tbody = document.getElementById('recent-tbody');
+    tbody.innerHTML = '';
+    sorted.forEach(r => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${new Date(r.created_at).toLocaleString()}</td>
+        <td><span class="badge badge-${r.type}">${r.type}</span></td>
+        <td><span class="badge">${r.tier}</span></td>
+        <td>${esc(r.sender_name)}</td>
+        <td>${esc(r.recipient_name)}</td>
+        <td style="font-size:12px;color:var(--text-dim)">${esc(r.recipient_email)}</td>
+        <td>$${parseFloat(r.price_paid).toFixed(2)}</td>
+        <td style="font-size:11px;font-family:monospace;color:var(--text-dim)">${r.slug}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+  document.getElementById('stat-content').textContent = (contentCount||0).toLocaleString();
+}
+
+// ── CONTENT ──
+async function loadContent() {
+  const type     = document.getElementById('filter-type').value;
+  const category = document.getElementById('filter-category').value;
+  const active   = document.getElementById('filter-active').value;
+
+  let q = sb.from('content').select('*').order('type').order('category').order('title');
+  if (type)     q = q.eq('type', type);
+  if (category) q = q.eq('category', category);
+  if (active !== '') q = q.eq('active', active === 'true');
+
+  const { data, error } = await q;
+  if (error) return;
+
+  // Populate category dropdown
+  const catSel = document.getElementById('filter-category');
+  const prevCat = catSel.value;
+  const { data: catData } = await sb.from('content').select('category').order('category');
+  const cats = [...new Set((catData||[]).map(r=>r.category))].filter(Boolean);
+  catSel.innerHTML = '<option value="">All Categories</option>';
+  cats.forEach(c => { const o = document.createElement('option'); o.value=c; o.textContent=c; if(c===prevCat)o.selected=true; catSel.appendChild(o); });
+
+  document.getElementById('content-count').textContent = (data||[]).length + ' items';
+  const tbody = document.getElementById('content-tbody');
+  tbody.innerHTML = '';
+  (data||[]).forEach(row => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><span class="badge badge-${row.type}">${row.type}</span></td>
+      <td style="font-size:13px">${esc(row.category)}</td>
+      <td style="font-weight:600;font-size:14px">${esc(row.title)}</td>
+      <td><div class="text-preview">${esc(row.text)}</div></td>
+      <td style="font-size:12px;color:var(--text-dim)">${esc(row.source||'')}</td>
+      <td style="font-size:12px">${row.tier}</td>
+      <td><span class="badge ${row.active?'badge-active':'badge-inactive'}">${row.active?'Active':'Off'}</span></td>
+      <td>
+        <button class="btn-sm" onclick="toggleActive('${row.id}',${!row.active})">${row.active?'Deactivate':'Activate'}</button>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+async function toggleActive(id, newVal) {
+  const { error } = await sb.from('content').update({ active: newVal }).eq('id', id);
+  if (!error) { toast(newVal ? 'Activated' : 'Deactivated'); loadContent(); }
+}
+
+// ── TRANSACTIONS ──
+let txPage = 0;
+const TX_PAGE_SIZE = 50;
+async function loadTransactions(page) {
+  if (page !== undefined) txPage = page;
+  const type = document.getElementById('tx-filter-type').value;
+  const tier = document.getElementById('tx-filter-tier').value;
+
+  let q = sb.from('transactions').select('*', { count: 'exact' })
+    .order('created_at', { ascending: false })
+    .range(txPage * TX_PAGE_SIZE, (txPage+1) * TX_PAGE_SIZE - 1);
+  if (type) q = q.eq('type', type);
+  if (tier) q = q.eq('tier', tier);
+
+  const { data, count, error } = await q;
+  if (error) return;
+
+  document.getElementById('tx-count').textContent = (count||0).toLocaleString() + ' total';
+  const tbody = document.getElementById('tx-tbody');
+  tbody.innerHTML = '';
+  (data||[]).forEach(r => {
+    const tr = document.createElement('tr');
+    const siteUrl = r.type === 'prayer' ? 'https://internetjesus.com' : 'https://internetsatan.com';
+    const param   = r.type === 'prayer' ? 'prayer' : 'curse';
+    tr.innerHTML = `
+      <td style="font-size:12px;white-space:nowrap">${new Date(r.created_at).toLocaleString()}</td>
+      <td><span class="badge badge-${r.type}">${r.type}</span></td>
+      <td style="font-size:12px">${r.tier}</td>
+      <td style="color:var(--gold)">$${parseFloat(r.price_paid).toFixed(2)}</td>
+      <td>${esc(r.sender_name)}</td>
+      <td style="font-size:12px;color:var(--text-dim)">${esc(r.recipient_email)}</td>
+      <td style="text-align:center">${r.view_count||0}</td>
+      <td><span class="badge ${r.delivered?'badge-active':'badge-inactive'}">${r.delivered?'Yes':'No'}</span></td>
+      <td><a href="${siteUrl}/?${param}=${r.slug}" target="_blank" style="color:var(--prayer);font-size:11px">View</a></td>
+    `;
+    tbody.appendChild(tr);
+  });
+
+  // Pagination
+  const totalPages = Math.ceil((count||0) / TX_PAGE_SIZE);
+  const pag = document.getElementById('tx-pagination');
+  pag.innerHTML = '';
+  if (txPage > 0) { const b=document.createElement('button'); b.className='btn-sm'; b.textContent='← Prev'; b.onclick=()=>loadTransactions(txPage-1); pag.appendChild(b); }
+  const info = document.createElement('span'); info.className='page-info'; info.textContent = 'Page '+(txPage+1)+' of '+totalPages; pag.appendChild(info);
+  if (txPage < totalPages-1) { const b=document.createElement('button'); b.className='btn-sm'; b.textContent='Next →'; b.onclick=()=>loadTransactions(txPage+1); pag.appendChild(b); }
+}
+
+// ── ADD CONTENT ──
+async function addContent() {
+  const type     = document.getElementById('add-type').value;
+  const tier     = document.getElementById('add-tier').value;
+  const category = document.getElementById('add-category').value.trim();
+  const title    = document.getElementById('add-title').value.trim();
+  const text     = document.getElementById('add-text').value.trim();
+  const source   = document.getElementById('add-source').value.trim();
+
+  if (!category || !title || !text) { toast('Please fill in Category, Title, and Text.'); return; }
+
+  const { error } = await sb.from('content').insert({ type, tier, category, title, text, source: source||null, active: true });
+  if (error) { toast('Error: ' + error.message); return; }
+
+  toast('Saved to library!');
+  document.getElementById('add-category').value = '';
+  document.getElementById('add-title').value = '';
+  document.getElementById('add-text').value = '';
+  document.getElementById('add-source').value = '';
+}
+
+function esc(str) {
+  return String(str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+</script>
+</body>
+</html>
