@@ -187,6 +187,7 @@
     <button class="nav-tab" onclick="switchTab('content')">Content Library</button>
     <button class="nav-tab" onclick="switchTab('transactions')">Transactions</button>
     <button class="nav-tab" onclick="switchTab('add')">Add Content</button>
+    <button class="nav-tab" onclick="switchTab('test')">Send Test</button>
   </nav>
 
   <!-- DASHBOARD -->
@@ -260,6 +261,79 @@
     <div class="pagination" id="tx-pagination"></div>
   </div>
 
+  <!-- TEST SEND -->
+  <div class="admin-section" id="tab-test">
+    <div class="add-form">
+      <div class="add-form-title">Send a Test Prayer or Curse</div>
+      <p style="font-family:'Crimson Text',serif;font-size:15px;color:var(--text-dim);margin-bottom:24px;">
+        Sends a real email and creates a landing page — no PayPal required. Test records are marked and excluded from stats.
+      </p>
+      <div class="form-grid">
+        <div class="form-group">
+          <label class="form-label">Type</label>
+          <select class="form-select" id="test-type" onchange="loadTestContent()">
+            <option value="prayer">Prayer</option>
+            <option value="curse">Curse</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Tier</label>
+          <select class="form-select" id="test-tier" onchange="onTestTierChange()">
+            <option value="random">Random ($1)</option>
+            <option value="topical">Topical ($5)</option>
+            <option value="custom">Custom ($10)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Your Name (Sender)</label>
+          <input class="form-input" id="test-sender-name" value="Admin Test" type="text">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Recipient Name</label>
+          <input class="form-input" id="test-recipient-name" value="Test Recipient" type="text">
+        </div>
+        <div class="form-group" style="grid-column:1/-1">
+          <label class="form-label">Recipient Email</label>
+          <input class="form-input" id="test-recipient-email" type="email" placeholder="Where to send the test">
+        </div>
+      </div>
+
+      <!-- Category + content picker (topical) -->
+      <div id="test-topical-section" style="display:none;">
+        <div class="form-group">
+          <label class="form-label">Category</label>
+          <select class="form-select" id="test-category" onchange="loadTestPicker()">
+            <option value="">— Select category —</option>
+          </select>
+        </div>
+        <div class="form-group" id="test-picker-group" style="display:none;">
+          <label class="form-label">Select Content</label>
+          <select class="form-select" id="test-content-select">
+            <option value="">— Select —</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Custom text -->
+      <div id="test-custom-section" style="display:none;">
+        <div class="form-group">
+          <label class="form-label">Custom Text</label>
+          <textarea class="form-textarea" id="test-custom-text" placeholder="Write the prayer or curse text..."></textarea>
+        </div>
+      </div>
+
+      <div id="test-error" style="display:none;background:rgba(139,0,0,0.2);border:1px solid rgba(204,0,0,0.5);border-radius:2px;padding:10px 14px;color:#FF9999;font-size:14px;margin-bottom:12px;"></div>
+      <button class="btn-primary" onclick="sendTest()" id="test-btn">Send Test Email</button>
+
+      <!-- Result -->
+      <div id="test-result" style="display:none;margin-top:24px;padding:20px;background:rgba(45,106,45,0.15);border:1px solid rgba(76,175,80,0.3);border-radius:4px;">
+        <div style="font-family:'Cinzel',serif;font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:#4CAF50;margin-bottom:8px;">Test Dispatched</div>
+        <div style="font-size:14px;color:var(--text);margin-bottom:8px;">Email sent. Landing page:</div>
+        <a id="test-landing-link" href="#" target="_blank" style="color:#4A90C0;font-size:13px;word-break:break-all;"></a>
+      </div>
+    </div>
+  </div>
+
   <!-- ADD CONTENT -->
   <div class="admin-section" id="tab-add">
     <div class="add-form">
@@ -304,8 +378,8 @@
 <div class="toast" id="toast"></div>
 
 <script>
-const SUPABASE_URL = 'YOUR_SUPABASE_URL';
-const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
+const SUPABASE_URL = 'https://njodexfqukjafmaliuox.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5qb2RleGZxdWtqYWZtYWxpdW94Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc2NDg5NTMsImV4cCI6MjA5MzIyNDk1M30.nbu6R7_8pmuEGXgbCI-hnMP3NSFAyeRqGX1KjLTac7Q';
 const ADMIN_PASSWORD = 'YOUR_ADMIN_PASSWORD'; // Change this
 const { createClient } = supabase;
 const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -343,7 +417,7 @@ function toast(msg) {
 
 // ── DASHBOARD ──
 async function loadDashboard() {
-  const { data: txData } = await sb.from('transactions').select('type, tier, price_paid, created_at, sender_name, recipient_name, recipient_email, slug, view_count, delivered');
+  const { data: txData } = await sb.from('transactions').select('type, tier, price_paid, created_at, sender_name, recipient_name, recipient_email, slug, view_count, delivered').eq('is_test', false);
   const { count: contentCount } = await sb.from('content').select('*', { count: 'exact', head: true });
 
   if (txData) {
@@ -495,9 +569,116 @@ async function addContent() {
   document.getElementById('add-source').value = '';
 }
 
+// ── TEST SEND ──
+let testContentByCategory = {};
+
+async function loadTestContent() {
+  const type = document.getElementById('test-type').value;
+  const catSel = document.getElementById('test-category');
+  const { data } = await sb.from('content').select('category').eq('type', type).eq('active', true);
+  const cats = [...new Set((data||[]).map(r=>r.category))].filter(Boolean).sort();
+  catSel.innerHTML = '<option value="">— Select category —</option>';
+  cats.forEach(c => { const o=document.createElement('option'); o.value=c; o.textContent=c; catSel.appendChild(o); });
+  testContentByCategory = {};
+  document.getElementById('test-picker-group').style.display = 'none';
+}
+
+function onTestTierChange() {
+  const tier = document.getElementById('test-tier').value;
+  document.getElementById('test-topical-section').style.display = tier === 'topical' ? 'block' : 'none';
+  document.getElementById('test-custom-section').style.display  = tier === 'custom'  ? 'block' : 'none';
+  if (tier === 'topical') loadTestContent();
+}
+
+async function loadTestPicker() {
+  const cat  = document.getElementById('test-category').value;
+  const type = document.getElementById('test-type').value;
+  if (!cat) { document.getElementById('test-picker-group').style.display='none'; return; }
+  if (!testContentByCategory[cat]) {
+    const { data } = await sb.from('content').select('id,title,text').eq('type',type).eq('category',cat).eq('active',true).order('title');
+    testContentByCategory[cat] = data || [];
+  }
+  const sel = document.getElementById('test-content-select');
+  sel.innerHTML = '<option value="">— Select —</option>';
+  testContentByCategory[cat].forEach(c => {
+    const o=document.createElement('option'); o.value=c.id; o.textContent=c.title; o.dataset.text=c.text; sel.appendChild(o);
+  });
+  document.getElementById('test-picker-group').style.display = 'block';
+}
+
+function generateSlug() {
+  const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
+  return 'test_' + Array.from({length:8}, () => chars[Math.floor(Math.random()*chars.length)]).join('');
+}
+
+async function sendTest() {
+  const type          = document.getElementById('test-type').value;
+  const tier          = document.getElementById('test-tier').value;
+  const senderName    = document.getElementById('test-sender-name').value.trim();
+  const recipientName = document.getElementById('test-recipient-name').value.trim();
+  const recipientEmail= document.getElementById('test-recipient-email').value.trim();
+  const errEl         = document.getElementById('test-error');
+
+  errEl.style.display = 'none';
+  if (!recipientEmail || !recipientEmail.includes('@')) { errEl.textContent='Please enter a valid recipient email.'; errEl.style.display='block'; return; }
+
+  let contentId = null, contentText = '';
+
+  if (tier === 'topical') {
+    const sel = document.getElementById('test-content-select');
+    const opt = sel.options[sel.selectedIndex];
+    if (!opt || !opt.value) { errEl.textContent='Please select a category and content item.'; errEl.style.display='block'; return; }
+    contentId   = opt.value;
+    contentText = opt.dataset.text;
+  } else if (tier === 'random') {
+    const { data } = await sb.from('content').select('id,text').eq('type',type).eq('active',true).limit(100);
+    if (data && data.length) { const pick=data[Math.floor(Math.random()*data.length)]; contentId=pick.id; contentText=pick.text; }
+  } else {
+    contentText = document.getElementById('test-custom-text').value.trim();
+    if (!contentText) { errEl.textContent='Please enter custom text.'; errEl.style.display='block'; return; }
+  }
+
+  const slug = generateSlug();
+  const siteUrl = type === 'prayer' ? 'https://internetjesus.com' : 'https://internetsatan.com';
+  const param   = type === 'prayer' ? 'prayer' : 'curse';
+  const landingUrl = siteUrl + '/?' + param + '=' + slug;
+  const price = tier === 'random' ? 1.00 : tier === 'topical' ? 5.00 : 10.00;
+
+  const btn = document.getElementById('test-btn');
+  btn.textContent = 'Sending…'; btn.disabled = true;
+
+  const { error } = await sb.from('transactions').insert({
+    type, tier, price_paid: price,
+    sender_name: senderName, sender_email: null,
+    recipient_name: recipientName, recipient_email: recipientEmail,
+    content_id: contentId || null,
+    custom_text: tier === 'custom' ? contentText : null,
+    paypal_order_id: 'TEST',
+    slug, delivered: false, view_count: 0, is_test: true
+  });
+
+  if (error) { errEl.textContent='DB error: '+error.message; errEl.style.display='block'; btn.textContent='Send Test Email'; btn.disabled=false; return; }
+
+  const phpFile = type === 'prayer' ? 'send-prayer.php' : 'send-curse.php';
+  const payload = type === 'prayer'
+    ? { slug, recipientName, recipientEmail, senderName, prayerText: contentText, tier, landingUrl }
+    : { slug, recipientName, recipientEmail, senderName, curseText:  contentText, tier, landingUrl };
+
+  try {
+    await fetch(phpFile, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload) });
+  } catch(e) { console.error(e); }
+
+  document.getElementById('test-landing-link').textContent = landingUrl;
+  document.getElementById('test-landing-link').href = landingUrl;
+  document.getElementById('test-result').style.display = 'block';
+  btn.textContent = 'Send Test Email'; btn.disabled = false;
+  toast('Test dispatched!');
+}
+
 function esc(str) {
   return String(str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
+
 </script>
 </body>
 </html>
